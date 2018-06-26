@@ -1,28 +1,21 @@
+extern crate reqwest;
 extern crate xml;
 
+use read_rss::reqwest::{Response, StatusCode};
 use read_rss::xml::reader::{EventReader, XmlEvent};
 use std::io::prelude::*;
-use std::net::lookup_host;
-use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 
-const SEC_RSS_URL: &'static str = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom:80";
+const SEC_RSS_URL: &'static str = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom";
 
-pub fn read_rss() {
+pub fn read_rss() -> Result<StatusCode, reqwest::Error> {
     println!("Reading");
-    let mut addrs_iter = SEC_RSS_URL
-        .to_socket_addrs()
-        .expect("Could not get IP addr");
-
-    let addr: SocketAddr = addrs_iter.next().expect("asdf");
-    let mut stream = TcpStream::connect(addr);
-    match stream {
-        Ok(mut s) => read_xml(&mut s),
-        Err(_) => panic!("No Stream Opened"),
-    };
+    let xml = reqwest::get(SEC_RSS_URL)?.text()?;
+    parse_xml(xml);
+    Ok(reqwest::StatusCode::Ok)
 }
 
-pub fn read_xml(stream: &mut TcpStream) {
-    let parser = EventReader::new(stream);
+pub fn parse_xml(xml: String) {
+    let parser = EventReader::from_str(&xml);
     for e in parser {
         match e {
             Ok(XmlEvent::StartElement { name, .. }) => {
@@ -32,4 +25,14 @@ pub fn read_xml(stream: &mut TcpStream) {
             _ => println!("Nothing"),
         }
     }
+}
+
+#[cfg(test)]
+mod rss_tests {
+    use super::*;
+    #[test]
+    fn read_rss_test() {
+        assert_eq!(read_rss().unwrap(), StatusCode::Ok);
+    }
+
 }

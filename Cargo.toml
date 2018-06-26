@@ -5,3 +5,4 @@ authors = ["JAlberss <johnalbers2018@u.northwestern.edu>"]
 
 [dependencies]
 xml-rs = "0.8"
+reqwest = "0.8.6"
