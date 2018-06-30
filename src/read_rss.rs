@@ -1,9 +1,11 @@
 extern crate reqwest;
 extern crate xml;
 
-use read_rss::reqwest::{Response, StatusCode};
-use read_rss::xml::reader::{EventReader, XmlEvent};
+use reqwest::{Response, StatusCode};
+use xml::reader::{EventReader, XmlEvent};
 use std::io::prelude::*;
+
+struct Entry {}
 
 pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
     println!("Reading");
@@ -41,7 +43,7 @@ pub fn parse_xml(xml: String) {
     }
 }
 
-pub fn clean_xml(xml: String) {
+pub fn clean_xml(_xml: String) {
     unimplemented!();
 }
 

@@ -1,7 +1,11 @@
+cargo-features = ["edition"]
+
 [package]
+edition = '2018'
 name = "sec_scraper"
 version = "0.1.0"
 authors = ["JAlberss <johnalbers2018@u.northwestern.edu>"]
+
 
 [dependencies]
 xml-rs = "0.8"
