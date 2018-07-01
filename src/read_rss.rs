@@ -1,34 +1,34 @@
-extern crate reqwest;
-extern crate xml;
-
 use reqwest::{Response, StatusCode};
 use xml::reader::{EventReader, XmlEvent};
 use std::io::prelude::*;
-
-struct Entry {}
+use super::sec_entry::SECEntry;
 
 pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
     println!("Reading");
     let xml = reqwest::get(website)?.text()?;
-    parse_xml(xml);
+    let parsed_xml = parse_xml(xml);
+    clean_xml(parsed_xml);
     Ok(reqwest::StatusCode::Ok)
 }
 
-pub fn parse_xml(xml: String) {
+pub fn parse_xml(xml: String) -> Vec<String> {
     let parser = EventReader::from_str(&xml);
     let mut entries: Vec<String> = Vec::new();
     let mut entry_tag: bool = false;
+    // Parse and aggregate information that occurs within an entry element
     for e in parser {
         match e {
             Ok(XmlEvent::StartElement { name, .. }) => {
                 if name.local_name.contains("entry") {
-                    // This sucks
                     entry_tag = true;
                 }
             }
             Ok(XmlEvent::Characters(c)) => {
                 if entry_tag {
-                    println!("chars {}", &c);
+                    println!("{}",&c);
+                    // TODO
+                    // Do we already have this thing in our accession number list
+                    // ENDTODO
                     entries.push(c);
                 }
             }
@@ -37,15 +37,26 @@ pub fn parse_xml(xml: String) {
                     entry_tag = false;
                 }
             }
-
             _ => println!("Nothing"),
         }
     }
+    entries
 }
 
-pub fn clean_xml(_xml: String) {
-    unimplemented!();
+pub fn clean_xml(xml: Vec<String>) {
+    //! This function will clean up the XML given to it, and create a vector of
+    //! entries that describe the SEC Filings
+    // Assumption: The form of the `Entry` XMLElement to be parsed will be as follows
+    // A title, which has the Type of Filing, Conformed Company Name, Central Index Key (CIK)
+    // A filing information index, which has the Accession Number, and Data of Filing
+    // A timestamp
+    // A Tag that is ignored
+    
+    
+    
 }
+
+
 
 #[cfg(test)]
 mod rss_tests {
