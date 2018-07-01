@@ -53,17 +53,31 @@ pub fn clean_xml(xml: Vec<String>) {
 
     let entries: Vec<SECEntry> = Vec::new();
     assert!(xml.len() % 4 == 0);
-    let mut test = xml.iter().take(4);
-    clean_title(test.next());
-    
+    // Routine for every 4 entries
+    let mut element_it = xml.iter();
+    for _ in xml.iter().step_by(4) {
+        clean_title(element_it.next());
+        clean_filing(element_it.next());
+        clean_timestamp(element_it.next());
+        element_it.next();
+    }
 }
 
-pub fn clean_title(input: Option<&String>) {
+pub fn clean_filing(input: Option<&String>) -> Result<(&str),&str> {
+    unimplemented!();
+}
+
+pub fn clean_timestamp(input: Option<&String>) -> Result<(&str),&str> {
+    unimplemented!();
+}
+
+pub fn clean_title(input: Option<&String>) -> Result<(&str,&str,&str),&str> {
     match input {
         Some(t) => {
-            println!("{:#?}",t.split(|c| c == '-'|| c == '(' || c == ')').map(|x| str::trim(x)).collect::<Vec<&str>>());
+            let vec = t.split(|c| c == '-'|| c == '(' || c == ')').map(|x| str::trim(x)).collect::<Vec<&str>>();
+            Ok((vec[0],vec[1],vec[2]))
         },
-        _ => (),
+        None => panic!("No title for xml"),
 
     }
 
