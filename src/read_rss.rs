@@ -1,6 +1,6 @@
-use reqwest::{Response, StatusCode};
+use reqwest::StatusCode;
 use xml::reader::{EventReader, XmlEvent};
-use std::io::prelude::*;
+//use std::io::prelude::*;
 use super::sec_entry::SECEntry;
 
 pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
@@ -25,7 +25,6 @@ pub fn parse_xml(xml: String) -> Vec<String> {
             }
             Ok(XmlEvent::Characters(c)) => {
                 if entry_tag {
-                    println!("{}",&c);
                     // TODO
                     // Do we already have this thing in our accession number list
                     // ENDTODO
@@ -37,7 +36,7 @@ pub fn parse_xml(xml: String) -> Vec<String> {
                     entry_tag = false;
                 }
             }
-            _ => println!("Nothing"),
+            _ => (),
         }
     }
     entries
@@ -51,12 +50,24 @@ pub fn clean_xml(xml: Vec<String>) {
     // A filing information index, which has the Accession Number, and Data of Filing
     // A timestamp
     // A Tag that is ignored
-    
-    
+
+    let entries: Vec<SECEntry> = Vec::new();
+    assert!(xml.len() % 4 == 0);
+    let mut test = xml.iter().take(4);
+    clean_title(test.next());
     
 }
 
+pub fn clean_title(input: Option<&String>) {
+    match input {
+        Some(t) => {
+            println!("{:#?}",t.split(|c| c == '-'|| c == '(' || c == ')').map(|x| str::trim(x)).collect::<Vec<&str>>());
+        },
+        _ => (),
 
+    }
+
+}
 
 #[cfg(test)]
 mod rss_tests {
