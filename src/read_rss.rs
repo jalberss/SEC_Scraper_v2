@@ -1,4 +1,5 @@
 use reqwest::StatusCode;
+use regex::Regex;
 use xml::reader::{EventReader, XmlEvent};
 //use std::io::prelude::*;
 use super::sec_entry::SECEntry;
@@ -56,21 +57,41 @@ pub fn clean_xml(xml: Vec<String>) {
     // Routine for every 4 entries
     let mut element_it = xml.iter();
     for _ in xml.iter().step_by(4) {
-        clean_title(element_it.next());
+        let (filing_type,conformed_name,cik) = clean_title(element_it.next()).expect("Unable to get title element");
         clean_filing(element_it.next());
-        clean_timestamp(element_it.next());
-        element_it.next();
+        //clean_timestamp(element_it.next());
+        element_it.next();         element_it.next();         element_it.next();
     }
 }
+/// This function cleans the string received in the filing information from the xml
+///      <b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB
+/// Fields of interest here are the date, and accession number, both of which are between <\b>
+/// <b> tags
+/// Dates & Accession Numbers will be kept in usize format, so that we don't need any string
+/// overhead.
+///
+/// Since we the data we want will have - in it with numbers on either side, we can use a regex/// to rip things out.
+/// ```
+/// assert_eq!((20180629,114036118030802),clean_filing(Some(<b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB)));
+///
+/// ```
+pub fn clean_filing(input: Option<&String>) -> Result<(usize,usize),&str> {
+    match input {
+        Some(f) => {
+            let re = Regex::new(r"(\d*-\d*-\d*)").unwrap();
+            let matches = re.captures_iter(&f).map(|a| a[1].to_owned()).collect::<Vec<String>>();
+            Ok((matches[0],matches[1])) // gotta convert date to string
 
-pub fn clean_filing(input: Option<&String>) -> Result<(&str),&str> {
+        },
+        _ => panic!("Yeeow"),
+    };
     unimplemented!();
 }
 
 pub fn clean_timestamp(input: Option<&String>) -> Result<(&str),&str> {
     unimplemented!();
 }
-
+/// 
 pub fn clean_title(input: Option<&String>) -> Result<(&str,&str,&str),&str> {
     match input {
         Some(t) => {
