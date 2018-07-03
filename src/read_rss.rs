@@ -87,9 +87,9 @@ pub fn clean_filing(input: Option<&String>) -> Result<(usize,usize),&str> {
         Some(f) => {
             let re = Regex::new(r"(\d*-\d*-\d*)").unwrap();
             let mut matches = re.captures_iter(&f).map(|a| a[1].to_owned()).collect::<Vec<String>>();
-            // For Effect only
-            matches[0].retain(|x| x != '-');
-            matches[1].retain(|x| x != '-');
+
+            // In place manipulation, for_each is eager as opposed to map()
+            matches.iter_mut().for_each(|y: &mut String| y.retain(|x| x!= '-'));
             
             Ok((matches[0].parse::<usize>().expect("Could not convert to usize"),
                matches[1].parse::<usize>().expect("Could not convert to usize")))
@@ -98,8 +98,14 @@ pub fn clean_filing(input: Option<&String>) -> Result<(usize,usize),&str> {
     }
 }
 
-pub fn clean_timestamp(input: Option<&String>) -> Result<(&str),&str> {
-    unimplemented!();
+pub fn clean_timestamp(input: Option<&String>) -> Result<(&String),&str> {
+    match input {
+        Some(x) => {
+            println!("{}",&x);
+            Ok(&x)
+        }
+        None => Err("asdf"),
+    }
 }
 /// 
 pub fn clean_title(input: Option<&String>) -> Result<(&str,&str,&str),&str> {
