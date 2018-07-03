@@ -2,13 +2,18 @@ use reqwest::StatusCode;
 use regex::Regex;
 use xml::reader::{EventReader, XmlEvent};
 //use std::io::prelude::*;
-use super::sec_entry::SECEntry;
+use crate::sec_entry::SECEntry;
+
+const NUM_ENTRY_ELEMENTS: usize = 4;
 
 pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
     println!("Reading");
     let xml = reqwest::get(website)?.text()?;
+    println!("Line");
     let parsed_xml = parse_xml(xml);
+    println!("Line");
     clean_xml(parsed_xml);
+    println!("Line");
     Ok(reqwest::StatusCode::Ok)
 }
 
@@ -53,14 +58,14 @@ pub fn clean_xml(xml: Vec<String>) {
     // A Tag that is ignored
 
     let entries: Vec<SECEntry> = Vec::new();
-    assert!(xml.len() % 4 == 0);
+    assert!(xml.len() % NUM_ENTRY_ELEMENTS == 0);
     // Routine for every 4 entries
     let mut element_it = xml.iter();
-    for _ in xml.iter().step_by(4) {
+    for _ in xml.iter().step_by(NUM_ENTRY_ELEMENTS) {
         let (filing_type,conformed_name,cik) = clean_title(element_it.next()).expect("Unable to get title element");
         clean_filing(element_it.next());
-        //clean_timestamp(element_it.next());
-        element_it.next();         element_it.next();         element_it.next();
+        clean_timestamp(element_it.next());
+        element_it.next();
     }
 }
 /// This function cleans the string received in the filing information from the xml
@@ -72,20 +77,25 @@ pub fn clean_xml(xml: Vec<String>) {
 ///
 /// Since we the data we want will have - in it with numbers on either side, we can use a regex/// to rip things out.
 /// ```
-/// assert_eq!((20180629,114036118030802),clean_filing(Some(<b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB)));
+/// // use super::*;
+/// // I think doc tests are broken?
+/// //assert_eq!(Ok((20180629,114036118030802)),clean_filing(Some(&"<b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB".to_string())));
 ///
 /// ```
 pub fn clean_filing(input: Option<&String>) -> Result<(usize,usize),&str> {
     match input {
         Some(f) => {
             let re = Regex::new(r"(\d*-\d*-\d*)").unwrap();
-            let matches = re.captures_iter(&f).map(|a| a[1].to_owned()).collect::<Vec<String>>();
-            Ok((matches[0],matches[1])) // gotta convert date to string
-
-        },
-        _ => panic!("Yeeow"),
-    };
-    unimplemented!();
+            let mut matches = re.captures_iter(&f).map(|a| a[1].to_owned()).collect::<Vec<String>>();
+            // For Effect only
+            matches[0].retain(|x| x != '-');
+            matches[1].retain(|x| x != '-');
+            
+            Ok((matches[0].parse::<usize>().expect("Could not convert to usize"),
+               matches[1].parse::<usize>().expect("Could not convert to usize")))
+            },
+        _ => Err("Filing Title unclean"),
+    }
 }
 
 pub fn clean_timestamp(input: Option<&String>) -> Result<(&str),&str> {
@@ -93,6 +103,7 @@ pub fn clean_timestamp(input: Option<&String>) -> Result<(&str),&str> {
 }
 /// 
 pub fn clean_title(input: Option<&String>) -> Result<(&str,&str,&str),&str> {
+    //! TODO: Make Errors that are helpful
     match input {
         Some(t) => {
             let vec = t.split(|c| c == '-'|| c == '(' || c == ')').map(|x| str::trim(x)).collect::<Vec<&str>>();
@@ -110,8 +121,15 @@ mod rss_tests {
 
     #[test]
     fn read_rss_test() {
-        assert_eq!(read_rss("https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom").unwrap(), StatusCode::Ok);
-        assert!(read_rss("asdfajc").is_err());
+//        assert_eq!(read_rss("https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom").unwrap(), StatusCode::Ok);
+  //      assert!(read_rss("asdfajc").is_err());
+    }
+
+    #[test]
+    fn clean_filing_test() {
+                assert_eq!((20180629,114036118030802),clean_filing(Some(&"<b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB".to_string())).expect(""));
+
+
     }
 
 }
