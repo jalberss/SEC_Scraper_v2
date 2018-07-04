@@ -39,14 +39,16 @@ pub enum FilingType {
     Sec10K,
     Sec10Q,
     Sec8K,
-    DEBUG,
 }
 
 impl FilingType {
-    fn which(filing_type: &str) -> FilingType {
+    pub fn which(filing_type: &str) -> Result<FilingType,()> {
         match filing_type {
-            "S-1/A" => FilingType::SecS1,
-            _ => FilingType::DEBUG,
+            "S-1/A" => Ok(FilingType::SecS1),
+            "5" => Ok(FilingType::Sec5),
+            "4" => Ok(FilingType::Sec4),            
+            "3" => Ok(FilingType::Sec3),
+            _ =>  Err(()),
         }
     }
 
@@ -57,7 +59,15 @@ mod entry_tests {
     use super::*;
 
     #[test]
-    fn which_test(){
-        assert_eq!(FilingType::which("S-1/A"),FilingType::SecS1);
+    fn which_test_s1(){
+        assert_eq!(FilingType::which("S-1/A"),Ok(FilingType::SecS1));
     }
+
+    #[test]
+    fn which_test_345(){
+        assert_eq!(FilingType::which("3"),Ok(FilingType::Sec3));
+        assert_eq!(FilingType::which("4"),Ok(FilingType::Sec4));
+        assert_eq!(FilingType::which("5"),Ok(FilingType::Sec5));
+    }
+
 }

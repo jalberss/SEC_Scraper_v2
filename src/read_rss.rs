@@ -2,7 +2,7 @@ use reqwest::StatusCode;
 use regex::Regex;
 use xml::reader::{EventReader, XmlEvent};
 //use std::io::prelude::*;
-use crate::sec_entry::SECEntry;
+use crate::sec_entry::{SECEntry,FilingType};
 
 const NUM_ENTRY_ELEMENTS: usize = 4;
 
@@ -55,7 +55,7 @@ pub fn clean_xml(xml: Vec<String>) {
     // A timestamp
     // A Tag that is ignored
 
-    let entries: Vec<SECEntry> = Vec::new();
+    let mut entries: Vec<SECEntry> = Vec::new();
     assert!(xml.len() % NUM_ENTRY_ELEMENTS == 0);
     // Routine for every 4 entries
     let mut element_it = xml.iter();
@@ -66,7 +66,9 @@ pub fn clean_xml(xml: Vec<String>) {
         let timestamp = clean_timestamp(element_it.next()).expect("Unable to get timestamp element");
         element_it.next();
 
-        
+        let filing_enum = FilingType::which(filing_type).unwrap();
+        let entry = SECEntry::new(filing_enum, conformed_name.to_owned(), cik, acc_number, timestamp.to_owned());
+        entries.push(entry);
     }
 }
 /// This function cleans the string received in the filing information from the xml
