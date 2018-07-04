@@ -1,3 +1,4 @@
+#[derive (Debug,PartialEq,Eq)]
 pub struct SECEntry {
     filing_type: FilingType,
     name: String,
@@ -16,8 +17,9 @@ impl SECEntry {
             timestamp,
         }
     }
-}
 
+}
+#[derive (Debug,PartialEq,Eq)]
 pub enum FilingType {
     SecS1,
     Sec3,
@@ -37,4 +39,25 @@ pub enum FilingType {
     Sec10K,
     Sec10Q,
     Sec8K,
+    DEBUG,
+}
+
+impl FilingType {
+    fn which(filing_type: &str) -> FilingType {
+        match filing_type {
+            "S-1/A" => FilingType::SecS1,
+            _ => FilingType::DEBUG,
+        }
+    }
+
+}
+
+#[cfg(test)]
+mod entry_tests {
+    use super::*;
+
+    #[test]
+    fn which_test(){
+        assert_eq!(FilingType::which("S-1/A"),FilingType::SecS1);
+    }
 }
