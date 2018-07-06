@@ -1,4 +1,4 @@
-#[derive (Debug,PartialEq,Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct SECEntry {
     filing_type: FilingType,
     name: String,
@@ -9,7 +9,14 @@ pub struct SECEntry {
 }
 
 impl SECEntry {
-    pub fn new(filing_type: FilingType, name: String, cik: usize, accession_number: usize, date: usize, timestamp: String) -> SECEntry {
+    pub fn new(
+        filing_type: FilingType,
+        name: String,
+        cik: usize,
+        accession_number: usize,
+        date: usize,
+        timestamp: String,
+    ) -> SECEntry {
         SECEntry {
             filing_type,
             name,
@@ -21,7 +28,7 @@ impl SECEntry {
     }
 }
 
-#[derive (Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum FilingType {
     SecS1,
     Sec3,
@@ -44,17 +51,16 @@ pub enum FilingType {
 }
 
 impl FilingType {
-    pub fn which(filing_type: &str) -> Result<FilingType,()> {
+    pub fn which(filing_type: &str) -> Result<FilingType, ()> {
         match filing_type {
             "S-1/A" => Ok(FilingType::SecS1),
             "5" => Ok(FilingType::Sec5),
             "4" => Ok(FilingType::Sec4),
             "4/A" => Ok(FilingType::Sec4A),
             "3" => Ok(FilingType::Sec3),
-            _ =>  Err(()),
+            _ => Err(()),
         }
     }
-
 }
 
 #[cfg(test)]
@@ -62,15 +68,15 @@ mod entry_tests {
     use super::*;
 
     #[test]
-    fn which_test_s1(){
-        assert_eq!(FilingType::which("S-1/A"),Ok(FilingType::SecS1));
+    fn which_test_s1() {
+        assert_eq!(FilingType::which("S-1/A"), Ok(FilingType::SecS1));
     }
 
     #[test]
-    fn which_test_345(){
-        assert_eq!(FilingType::which("3"),Ok(FilingType::Sec3));
-        assert_eq!(FilingType::which("4"),Ok(FilingType::Sec4));
-        assert_eq!(FilingType::which("5"),Ok(FilingType::Sec5));
+    fn which_test_345() {
+        assert_eq!(FilingType::which("3"), Ok(FilingType::Sec3));
+        assert_eq!(FilingType::which("4"), Ok(FilingType::Sec4));
+        assert_eq!(FilingType::which("5"), Ok(FilingType::Sec5));
     }
 
 }
