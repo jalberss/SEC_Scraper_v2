@@ -173,7 +173,7 @@ mod rss_tests {
     }
 
     #[test]
-    fn clean_xml_ignore(){
+    fn clean_xml_ignore0(){
                 let test = vec![    "4/A - Wilson Andrew (0001545193) (Reporting)",
     "\n <b>Filed:</b> 2018-07-05 <b>AccNo:</b> 0001454387-18-000188 <b>Size:</b> 5 KB\n",
     "2018-07-05T20:51:01-04:00",
@@ -183,6 +183,33 @@ mod rss_tests {
         ignore_set.insert(FilingType::Sec4A);
 
         assert_eq!(Ok(Vec::new()), clean_xml(vec, ignore_set));
+    }
+    #[test]
+    fn clean_xml_ignore1(){
+        let entry = SECEntry::new(FilingType::Sec4A, String::from("Wilson Andrew"),
+                                  1545193,
+                                  145438718000188,
+                                  20180705,
+                                  String::from("2018-07-05T20:51:01-04:00"));
+        
+        let test = vec![    "4/A - Wilson Andrew (0001545193) (Reporting)",
+                             "\n <b>Filed:</b> 2018-07-05 <b>AccNo:</b> 0001454387-18-000188 <b>Size:</b> 5 KB\n",
+                             "2018-07-05T20:51:01-04:00",
+                             "urn:tag:sec.gov,2008:accession-number=0001454387-18-000188",
+                             "4 - Wilson Andrew (0001545193) (Reporting)",
+                             "\n <b>Filed:</b> 2018-07-05 <b>AccNo:</b> 0001454387-18-000188 <b>Size:</b> 5 KB\n",
+                             "2018-07-05T20:51:01-04:00",
+                             "urn:tag:sec.gov,2008:accession-number=0001454387-18-000188"];
+        let vec = test.into_iter().map(String::from).collect::<Vec<String>>();
+        let mut ignore_set = HashSet::new();
+        ignore_set.insert(FilingType::Sec4A);
+        let entry = SECEntry::new(FilingType::Sec4, String::from("Wilson Andrew"), 1545193,
+                                  145438718000188,
+                                  20180705,
+                                  String::from("2018-07-05T20:51:01-04:00"));
+        
+
+        assert_eq!(Some(entry), clean_xml(vec, ignore_set).unwrap().pop());
     }
     
     #[test]
