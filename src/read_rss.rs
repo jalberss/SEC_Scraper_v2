@@ -7,11 +7,9 @@ use crate::sec_entry::{SECEntry,FilingType};
 const NUM_ENTRY_ELEMENTS: usize = 4;
 
 pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
-    println!("Reading");
     let xml = reqwest::get(website)?.text()?;
     let parsed_xml = parse_xml(xml);
-    clean_xml(parsed_xml);
-    println!("Line");
+    let entries =  clean_xml(parsed_xml);
     Ok(reqwest::StatusCode::Ok)
 }
 
@@ -46,7 +44,7 @@ pub fn parse_xml(xml: String) -> Vec<String> {
     entries
 }
 
-pub fn clean_xml(xml: Vec<String>) {
+pub fn clean_xml(xml: Vec<String>) -> Result<Vec<SECEntry>,()> {
     //! This function will clean up the XML given to it, and create a vector of
     //! entries that describe the SEC Filings
     // Assumption: The form of the `Entry` XMLElement to be parsed will be as follows
@@ -58,18 +56,20 @@ pub fn clean_xml(xml: Vec<String>) {
     let mut entries: Vec<SECEntry> = Vec::new();
     assert!(xml.len() % NUM_ENTRY_ELEMENTS == 0);
     // Routine for every 4 entries
+    println!("{:#?}",xml);
     let mut element_it = xml.iter();
     for _ in xml.iter().step_by(NUM_ENTRY_ELEMENTS) {
         let (filing_type,conformed_name,cik) = clean_title(element_it.next()).expect("Unable to get title element");
-        println!("Filing: {}\nConformed name: {}\ncik: {}", &filing_type, &conformed_name, &cik);
+
         let (date, acc_number) = clean_filing(element_it.next()).expect("Unable to get filing element");
         let timestamp = clean_timestamp(element_it.next()).expect("Unable to get timestamp element");
         element_it.next();
 
-        let filing_enum = FilingType::which(filing_type).unwrap();
-        let entry = SECEntry::new(filing_enum, conformed_name.to_owned(), cik, acc_number, timestamp.to_owned());
+        let filing_enum = FilingType::which(filing_type)?;
+        let entry = SECEntry::new(filing_enum, conformed_name.to_owned(), cik, acc_number, date, timestamp.to_owned());
         entries.push(entry);
     }
+    Ok(entries)
 }
 /// This function cleans the string received in the filing information from the xml
 ///      <b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB
@@ -114,8 +114,11 @@ pub fn clean_title(input: Option<&String>) -> Result<(&str,&str,usize),&str> {
     //! TODO: Make Errors that are helpful
     match input {
         Some(t) => {
-            
+
+            /* Get the form name, it may contain a -, which is why we take this approach */
             let split_names = t.split(" - ").collect::<Vec<&str>>();
+
+            /* Get the conformed name, and accession number. The accession number is between tow parens */
             let vec = split_names[1].split(|c| c == '(' || c == ')').map(str::trim).collect::<Vec<&str>>();
             
             Ok((split_names[0],vec[0],vec[1].parse::<usize>().expect("Could Not convert to usize")))
@@ -129,7 +132,7 @@ pub fn clean_title(input: Option<&String>) -> Result<(&str,&str,usize),&str> {
 #[cfg(test)]
 mod rss_tests {
     use super::*;
-
+    
     #[test]
     fn clean_title_test_s1a(){
         assert_eq!(clean_title(Some(&"S-1/A - Tipmefast, Inc. (0001726079) (Filer)".to_owned())), Ok(("S-1/A","Tipmefast, Inc.",1726079)));
@@ -146,14 +149,26 @@ mod rss_tests {
     #[test]
     fn read_rss_test() {
         assert_eq!(read_rss("https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom").unwrap(), StatusCode::Ok);
-        assert!(read_rss("asdfajc").is_err());
+        //assert!(read_rss("asdfajc").is_err());
     }
 
     #[test]
     fn clean_filing_test() {
                 assert_eq!((20180629,114036118030802),clean_filing(Some(&"<b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB".to_string())).expect(""));
+    }
 
-
+    #[test]
+    fn clean_xml_test(){
+        let test = vec![    "4/A - Wilson Andrew (0001545193) (Reporting)",
+    "\n <b>Filed:</b> 2018-07-05 <b>AccNo:</b> 0001454387-18-000188 <b>Size:</b> 5 KB\n",
+    "2018-07-05T20:51:01-04:00",
+                             "urn:tag:sec.gov,2008:accession-number=0001454387-18-000188"];
+        let vec = test.into_iter().map(str::to_owned).collect::<Vec<String>>();
+        let entry = SECEntry::new(FilingType::Sec4A, String::from("Wilson Andrew"), 1545193,
+                                  145438718000188,
+                                  20180705,
+                                  String::from("2018-07-05T20:51:01-04:00"));
+        assert_eq!(Some(entry),clean_xml(vec).unwrap().pop());
     }
 
 }

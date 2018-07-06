@@ -4,16 +4,18 @@ pub struct SECEntry {
     name: String,
     cik: usize,
     accession_number: usize,
+    date: usize,
     timestamp: String,
 }
 
 impl SECEntry {
-    pub fn new(filing_type: FilingType, name: String, cik: usize, accession_number: usize, timestamp: String) -> SECEntry {
+    pub fn new(filing_type: FilingType, name: String, cik: usize, accession_number: usize, date: usize, timestamp: String) -> SECEntry {
         SECEntry {
             filing_type,
             name,
             cik,
             accession_number,
+            date,
             timestamp,
         }
     }
@@ -46,7 +48,8 @@ impl FilingType {
         match filing_type {
             "S-1/A" => Ok(FilingType::SecS1),
             "5" => Ok(FilingType::Sec5),
-            "4" => Ok(FilingType::Sec4),            
+            "4" => Ok(FilingType::Sec4),
+            "4/A" => Ok(FilingType::Sec4A),
             "3" => Ok(FilingType::Sec3),
             _ =>  Err(()),
         }
