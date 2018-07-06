@@ -61,11 +61,23 @@ pub fn clean_xml(xml: Vec<String>) -> Result<Vec<SECEntry>,()> {
     for _ in xml.iter().step_by(NUM_ENTRY_ELEMENTS) {
         let (filing_type,conformed_name,cik) = clean_title(element_it.next()).expect("Unable to get title element");
 
+        let filing_enum = FilingType::which(filing_type)?;
+
+        /* Ignore if of certain filing type(s)*/
+        match filing_enum {
+            FilingType::Sec4 => {
+                println!("Ignore");
+                element_it.next(); element_it.next(); element_it.next();
+                continue;
+            },
+            _ => println!("Nah"),
+        };
+        
         let (date, acc_number) = clean_filing(element_it.next()).expect("Unable to get filing element");
         let timestamp = clean_timestamp(element_it.next()).expect("Unable to get timestamp element");
         element_it.next();
 
-        let filing_enum = FilingType::which(filing_type)?;
+
         let entry = SECEntry::new(filing_enum, conformed_name.to_owned(), cik, acc_number, date, timestamp.to_owned());
         entries.push(entry);
     }
