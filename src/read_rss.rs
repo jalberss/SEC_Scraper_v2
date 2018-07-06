@@ -2,6 +2,7 @@ use reqwest::StatusCode;
 use regex::Regex;
 use xml::reader::{EventReader, XmlEvent};
 //use std::io::prelude::*;
+use std::collections::HashSet;
 use crate::sec_entry::{SECEntry,FilingType};
 
 const NUM_ENTRY_ELEMENTS: usize = 4;
@@ -9,7 +10,7 @@ const NUM_ENTRY_ELEMENTS: usize = 4;
 pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
     let xml = reqwest::get(website)?.text()?;
     let parsed_xml = parse_xml(xml);
-    let entries =  clean_xml(parsed_xml);
+    let entries =  clean_xml(parsed_xml, HashSet::new()); //TODO replace
     Ok(reqwest::StatusCode::Ok)
 }
 
@@ -44,7 +45,7 @@ pub fn parse_xml(xml: String) -> Vec<String> {
     entries
 }
 
-pub fn clean_xml(xml: Vec<String>) -> Result<Vec<SECEntry>,()> {
+pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SECEntry>,()> {
     //! This function will clean up the XML given to it, and create a vector of
     //! entries that describe the SEC Filings
     // Assumption: The form of the `Entry` XMLElement to be parsed will be as follows
@@ -64,22 +65,18 @@ pub fn clean_xml(xml: Vec<String>) -> Result<Vec<SECEntry>,()> {
         let filing_enum = FilingType::which(filing_type)?;
 
         /* Ignore if of certain filing type(s)*/
-        match filing_enum {
-            FilingType::Sec4 => {
-                println!("Ignore");
-                element_it.next(); element_it.next(); element_it.next();
-                continue;
-            },
-            _ => println!("Nah"),
-        };
-        
-        let (date, acc_number) = clean_filing(element_it.next()).expect("Unable to get filing element");
-        let timestamp = clean_timestamp(element_it.next()).expect("Unable to get timestamp element");
-        element_it.next();
+        if ignore.contains(&filing_enum) {
+            ignore_filing(&mut element_it);
+        } else {
+            
+            let (date, acc_number) = clean_filing(element_it.next()).expect("Unable to get filing element");
+            let timestamp = clean_timestamp(element_it.next()).expect("Unable to get timestamp element");
+            element_it.next();
 
 
-        let entry = SECEntry::new(filing_enum, conformed_name.to_owned(), cik, acc_number, date, timestamp.to_owned());
-        entries.push(entry);
+            let entry = SECEntry::new(filing_enum, conformed_name.to_owned(), cik, acc_number, date, timestamp.to_owned());
+            entries.push(entry);
+        }
     }
     Ok(entries)
 }
@@ -141,6 +138,12 @@ pub fn clean_title(input: Option<&String>) -> Result<(&str,&str,usize),&str> {
 
 }
 
+#[inline]
+pub fn ignore_filing<T: Iterator> (iter: &mut T) {
+    iter.next(); iter.next(); iter.next();
+}
+
+
 #[cfg(test)]
 mod rss_tests {
     use super::*;
@@ -170,6 +173,19 @@ mod rss_tests {
     }
 
     #[test]
+    fn clean_xml_ignore(){
+                let test = vec![    "4/A - Wilson Andrew (0001545193) (Reporting)",
+    "\n <b>Filed:</b> 2018-07-05 <b>AccNo:</b> 0001454387-18-000188 <b>Size:</b> 5 KB\n",
+    "2018-07-05T20:51:01-04:00",
+                                     "urn:tag:sec.gov,2008:accession-number=0001454387-18-000188"];
+        let vec = test.into_iter().map(String::from).collect::<Vec<String>>();
+        let mut ignore_set = HashSet::new();
+        ignore_set.insert(FilingType::Sec4A);
+
+        assert_eq!(Ok(Vec::new()), clean_xml(vec, ignore_set));
+    }
+    
+    #[test]
     fn clean_xml_test(){
         let test = vec![    "4/A - Wilson Andrew (0001545193) (Reporting)",
     "\n <b>Filed:</b> 2018-07-05 <b>AccNo:</b> 0001454387-18-000188 <b>Size:</b> 5 KB\n",
@@ -180,7 +196,7 @@ mod rss_tests {
                                   145438718000188,
                                   20180705,
                                   String::from("2018-07-05T20:51:01-04:00"));
-        assert_eq!(Some(entry),clean_xml(vec).unwrap().pop());
+        assert_eq!(Some(entry),clean_xml(vec, HashSet::new()).unwrap().pop());
     }
 
 }

@@ -19,9 +19,9 @@ impl SECEntry {
             timestamp,
         }
     }
-
 }
-#[derive (Debug,PartialEq,Eq)]
+
+#[derive (Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum FilingType {
     SecS1,
     Sec3,
