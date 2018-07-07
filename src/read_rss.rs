@@ -4,10 +4,14 @@ use xml::reader::{EventReader, XmlEvent};
 //use std::io::prelude::*;
 use crate::sec_entry::{FilingType, SECEntry};
 use std::collections::HashSet;
-use std::fs::File;
+use std::{
+    {fs::File},
+    {path::Path}};
 use std::io::{BufReader,LineWriter,Read, Write};
 
 const NUM_ENTRY_ELEMENTS: usize = 4;
+
+const LOG_FILE: &str = "accession_numbers.txt";
 
 pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
     let xml = reqwest::get(website)?.text()?;
@@ -98,9 +102,10 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 }
 
 /// This function will check to see if an accesion number is not unique, and thus
-/// must be ignored
-fn check_accession_number(acc_number: usize) -> std::io::Result<()> {
-    let mut file = File::open("acc_number.txt")?;
+/// must be ignore. The Programmer regrets this function, and will replace it with
+/// database query
+fn check_accession_number(acc_number: usize, file_path: &Path) -> std::io::Result<()> {
+    let mut file = File::open(file_path)?;
     let mut containsP: bool;
     {
         let mut buf_reader = BufReader::new(&mut file);
