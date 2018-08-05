@@ -1,7 +1,6 @@
 use regex::Regex;
 use reqwest::StatusCode;
 use xml::reader::{EventReader, XmlEvent};
-//use std::io::prelude::*;
 use crate::sec_entry::{FilingType, SECEntry};
 use std::collections::HashSet;
 use std::{
@@ -78,10 +77,6 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 
             /* CIKs are not unique, i.e. a company/individual will have the same*/
             /* CIK each time it files with the SEC */
-
-            
-            
-            
             
             let timestamp =
                 clean_timestamp(element_it.next()).expect("Unable to get timestamp element");
