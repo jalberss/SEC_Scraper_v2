@@ -3,6 +3,7 @@ extern crate diesel;
 use super::models::{NewPost, Post};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
+use diesel::result::QueryResult;
 use dotenv::dotenv;
 use std::env;
 
@@ -29,6 +30,12 @@ pub fn write_number(
     diesel::insert_into(posts::table)
         .values(&new_post)
         .get_result(conn)
+}
+
+pub fn has_number(conn: &PgConnection, acc: usize) -> QueryResult<Vec<Post>> {
+    use super::schema::posts::dsl::*;
+    let acc = acc.to_string();
+    posts.filter(acc_number.like(acc)).load::<Post>(conn)
 }
 
 pub fn get_posts(conn: &PgConnection) {

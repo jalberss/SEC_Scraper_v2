@@ -1,12 +1,11 @@
+use crate::postgres::*;
+use crate::sec_entry::{FilingType, SECEntry};
 use regex::Regex;
 use reqwest::StatusCode;
-use xml::reader::{EventReader, XmlEvent};
-use crate::sec_entry::{FilingType, SECEntry};
 use std::collections::HashSet;
-use std::{
-    {fs::File},
-    {path::Path}};
-use std::io::{BufReader,LineWriter,Read, Write};
+use std::io::{BufReader, LineWriter, Read, Write};
+use std::{fs::File, path::Path};
+use xml::reader::{EventReader, XmlEvent};
 
 const NUM_ENTRY_ELEMENTS: usize = 4;
 
@@ -71,13 +70,12 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
         if ignore.contains(&filing_enum) {
             ignore_filing(&mut element_it);
         } else {
-            
             let (date, acc_number) =
                 clean_filing(element_it.next()).expect("Unable to get filing element");
 
             /* CIKs are not unique, i.e. a company/individual will have the same*/
             /* CIK each time it files with the SEC */
-            
+
             let timestamp =
                 clean_timestamp(element_it.next()).expect("Unable to get timestamp element");
             element_it.next();
@@ -99,24 +97,26 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 /// This function will check to see if an accesion number is not unique, and thus
 /// must be ignore. The Programmer regrets this function, and will replace it with
 /// database query
-fn check_accession_number(acc_number: usize, file_path: &Path) -> std::io::Result<()> {
-    let mut file = File::open(file_path)?;
-    let mut containsP: bool;
-    {
-        let mut buf_reader = BufReader::new(&mut file);
-        let mut contents = String::new();
-        buf_reader.read_to_string(&mut contents)?;
-        containsP = contents.contains(&acc_number.to_string())
-    }
-    if containsP {
-        Err(std::io::Error::new(std::io::ErrorKind::Other, "Accession Number already present")) //ToDo error chain
-    } else {
-        let mut buf_writer = LineWriter::new(&mut file);
-        buf_writer.write(acc_number.to_string().as_bytes())?;
-        Ok(())
-    }
-}
+fn check_accession_number(acc_number: usize, file_path: &Path) {
+    let conn = establish_connection();
+    has_number(&conn, acc_number);
+    // let mut file = File::open(file_path)?;
+    // let mut containsP: bool;
 
+    // {
+    //     let mut buf_reader = BufReader::new(&mut file);
+    //     let mut contents = String::new();
+    //     buf_reader.read_to_string(&mut contents)?;
+    //     containsP = contents.contains(&acc_number.to_string())
+    // }
+    // if containsP {
+    //     Err(std::io::Error::new(std::io::ErrorKind::Other, "Accession Number already present")) //ToDo error chain
+    // } else {
+    //     let mut buf_writer = LineWriter::new(&mut file);
+    //     buf_writer.write(acc_number.to_string().as_bytes())?;
+    //     Ok(())
+    // }
+}
 
 /// This function cleans the string received in the filing information from the xml
 ///      <b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB
@@ -136,7 +136,8 @@ pub fn clean_filing(input: Option<&String>) -> Result<(usize, usize), &str> {
     match input {
         Some(f) => {
             let re = Regex::new(r"(\d*-\d*-\d*)").unwrap();
-            let mut matches = re.captures_iter(&f)
+            let mut matches = re
+                .captures_iter(&f)
                 .map(|a| a[1].to_owned())
                 .collect::<Vec<String>>();
 
