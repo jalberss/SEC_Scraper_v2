@@ -32,7 +32,7 @@ pub fn write_number(
         .get_result(conn)
 }
 
-pub fn has_number(conn: &PgConnection, acc: usize) -> QueryResult<Vec<Post>> {
+pub fn get_number(conn: &PgConnection, acc: usize) -> QueryResult<Vec<Post>> {
     use super::schema::posts::dsl::*;
     let acc = acc.to_string();
     posts.filter(acc_number.like(acc)).load::<Post>(conn)

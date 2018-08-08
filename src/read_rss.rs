@@ -97,9 +97,14 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 /// This function will check to see if an accesion number is not unique, and thus
 /// must be ignore. The Programmer regrets this function, and will replace it with
 /// database query
-fn check_accession_number(acc_number: usize, file_path: &Path) {
+fn check_accession_number(acc_number: usize, file_path: &Path) -> Result<(), ()> {
     let conn = establish_connection();
-    has_number(&conn, acc_number);
+    let entry = get_number(&conn, acc_number);
+    match entry {
+        Ok(_) => Ok(()),
+        Err(_) => Err(()),
+    }
+
     // let mut file = File::open(file_path)?;
     // let mut containsP: bool;
 
