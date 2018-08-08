@@ -32,10 +32,14 @@ pub fn write_number(
         .get_result(conn)
 }
 
-pub fn get_number(conn: &PgConnection, acc: usize) -> QueryResult<Vec<Post>> {
+pub fn get_number(conn: &PgConnection, acc: usize) -> Option<Vec<Post>> {
     use super::schema::posts::dsl::*;
     let acc = acc.to_string();
-    posts.filter(acc_number.like(acc)).load::<Post>(conn)
+    let result = posts.filter(acc_number.like(acc)).load::<Post>(conn);
+    match result {
+        Ok(x) => Some(x),
+        _ => None,
+    }
 }
 
 pub fn get_posts(conn: &PgConnection) {

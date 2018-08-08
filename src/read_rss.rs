@@ -7,12 +7,17 @@ use std::io::{BufReader, LineWriter, Read, Write};
 use std::{fs::File, path::Path};
 use xml::reader::{EventReader, XmlEvent};
 
+use crate::errors::*;
+
 const NUM_ENTRY_ELEMENTS: usize = 4;
 
 const LOG_FILE: &str = "accession_numbers.txt";
 
-pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
-    let xml = reqwest::get(website)?.text()?;
+pub fn read_rss(website: &str) -> Result<StatusCode> {
+    let xml = reqwest::get(website)
+        .chain_err(|| "Unable to reach website")?
+        .text()
+        .chain_err(|| "Unable to get website text")?;
     let parsed_xml = parse_xml(&xml);
     let entries = clean_xml(parsed_xml, HashSet::new()); //TODO replace
     Ok(reqwest::StatusCode::Ok)
@@ -46,7 +51,7 @@ pub fn parse_xml(xml: &str) -> Vec<String> {
     entries
 }
 
-pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SECEntry>, ()> {
+pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SECEntry>> {
     //! This function will clean up the XML given to it, and create a vector of
     //! entries that describe the SEC Filings
     // Assumption: The form of the `Entry` XMLElement to be parsed will be as follows
@@ -64,20 +69,21 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
         let (filing_type, conformed_name, cik) =
             clean_title(element_it.next()).expect("Unable to get title element");
 
-        let filing_enum = FilingType::which(filing_type)?;
+        let filing_enum =
+            FilingType::which(filing_type).chain_error(|| "Unknown filing type given")?;
 
         /* Ignore if of certain filing type(s)*/
         if ignore.contains(&filing_enum) {
             ignore_filing(&mut element_it);
         } else {
             let (date, acc_number) =
-                clean_filing(element_it.next()).expect("Unable to get filing element");
+                clean_filing(element_it.next()).chain_err(|| "Unable to get filing element")?;
 
             /* CIKs are not unique, i.e. a company/individual will have the same*/
             /* CIK each time it files with the SEC */
 
-            let timestamp =
-                clean_timestamp(element_it.next()).expect("Unable to get timestamp element");
+            let timestamp = clean_timestamp(element_it.next())
+                .chain_err(|| "Unable to get timestamp element")?;
             element_it.next();
 
             let entry = SECEntry::new(
@@ -97,13 +103,10 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 /// This function will check to see if an accesion number is not unique, and thus
 /// must be ignore. The Programmer regrets this function, and will replace it with
 /// database query
-fn check_accession_number(acc_number: usize, file_path: &Path) -> Result<(), ()> {
+fn check_accession_number(acc_number: usize, file_path: &Path) -> Result<()> {
     let conn = establish_connection();
-    let entry = get_number(&conn, acc_number);
-    match entry {
-        Ok(_) => Ok(()),
-        Err(_) => Err(()),
-    }
+    let applicative_ftw = get_number(&conn, acc_number).map(|_| ());
+    applicative_ftw.ok_or_else(|| "Not found")
 
     // let mut file = File::open(file_path)?;
     // let mut containsP: bool;
@@ -137,7 +140,7 @@ fn check_accession_number(acc_number: usize, file_path: &Path) -> Result<(), ()>
 /// //assert_eq!(Ok((20180629,114036118030802)),clean_filing(Some(&"<b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB".to_string())));
 ///
 /// ```
-pub fn clean_filing(input: Option<&String>) -> Result<(usize, usize), &str> {
+pub fn clean_filing(input: Option<&String>) -> Result<(usize, usize)> {
     match input {
         Some(f) => {
             let re = Regex::new(r"(\d*-\d*-\d*)").unwrap();
@@ -164,14 +167,14 @@ pub fn clean_filing(input: Option<&String>) -> Result<(usize, usize), &str> {
     }
 }
 
-pub fn clean_timestamp(input: Option<&String>) -> Result<(&String), &str> {
+pub fn clean_timestamp(input: Option<&String>) -> Result<(&String)> {
     match input {
         Some(x) => Ok(&x),
-        None => Err("asdf"),
+        None => Err("Unable to clean timestamp"),
     }
 }
 ///
-pub fn clean_title(input: Option<&String>) -> Result<(&str, &str, usize), &str> {
+pub fn clean_title(input: Option<&String>) -> Result<(&str, &str, usize)> {
     //! TODO: Make Errors that are helpful
     match input {
         Some(t) => {
@@ -187,10 +190,12 @@ pub fn clean_title(input: Option<&String>) -> Result<(&str, &str, usize), &str> 
             Ok((
                 split_names[0],
                 vec[0],
-                vec[1].parse::<usize>().expect("Could Not convert to usize"),
+                vec[1]
+                    .parse::<usize>()
+                    .chain_err(|| "Could not convert to usize")?,
             ))
         }
-        None => panic!("No title for xml"),
+        None => Err("No xml title found"),
     }
 }
 
