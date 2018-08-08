@@ -13,12 +13,12 @@ const LOG_FILE: &str = "accession_numbers.txt";
 
 pub fn read_rss(website: &str) -> Result<StatusCode, reqwest::Error> {
     let xml = reqwest::get(website)?.text()?;
-    let parsed_xml = parse_xml(xml);
+    let parsed_xml = parse_xml(&xml);
     let entries = clean_xml(parsed_xml, HashSet::new()); //TODO replace
     Ok(reqwest::StatusCode::Ok)
 }
 
-pub fn parse_xml(xml: String) -> Vec<String> {
+pub fn parse_xml(xml: &str) -> Vec<String> {
     let parser = EventReader::from_str(&xml);
     let mut entries: Vec<String> = Vec::new();
     let mut entry_tag: bool = false;
