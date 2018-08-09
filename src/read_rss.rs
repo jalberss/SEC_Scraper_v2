@@ -1,3 +1,4 @@
+use crate::models::Post;
 use crate::postgres::*;
 use crate::sec_entry::{FilingType, SECEntry};
 use regex::Regex;
@@ -70,7 +71,7 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
             clean_title(element_it.next()).expect("Unable to get title element");
 
         let filing_enum =
-            FilingType::which(filing_type).chain_error(|| "Unknown filing type given")?;
+            FilingType::which(filing_type).chain_err(|| "Unknown filing type given")?;
 
         /* Ignore if of certain filing type(s)*/
         if ignore.contains(&filing_enum) {
@@ -103,10 +104,9 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 /// This function will check to see if an accesion number is not unique, and thus
 /// must be ignore. The Programmer regrets this function, and will replace it with
 /// database query
-fn check_accession_number(acc_number: usize, file_path: &Path) -> Result<()> {
+fn check_accession_number(acc_number: usize, file_path: &Path) -> Option<Vec<Post>> {
     let conn = establish_connection();
-    let applicative_ftw = get_number(&conn, acc_number).map(|_| ());
-    applicative_ftw.ok_or_else(|| "Not found")
+    get_number(&conn, acc_number)
 
     // let mut file = File::open(file_path)?;
     // let mut containsP: bool;
@@ -163,14 +163,14 @@ pub fn clean_filing(input: Option<&String>) -> Result<(usize, usize)> {
                     .expect("Could not convert to usize"),
             ))
         }
-        _ => Err("Filing Title unclean"),
+        _ => bail!("Filing title unclean"),
     }
 }
 
 pub fn clean_timestamp(input: Option<&String>) -> Result<(&String)> {
     match input {
         Some(x) => Ok(&x),
-        None => Err("Unable to clean timestamp"),
+        None => Err("Unable to clean timestamp")?,
     }
 }
 ///
@@ -195,7 +195,7 @@ pub fn clean_title(input: Option<&String>) -> Result<(&str, &str, usize)> {
                     .chain_err(|| "Could not convert to usize")?,
             ))
         }
-        None => Err("No xml title found"),
+        None => Err("No xml title found")?,
     }
 }
 

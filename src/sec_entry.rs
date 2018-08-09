@@ -1,3 +1,5 @@
+use crate::errors::*;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct SECEntry {
     filing_type: FilingType,
@@ -51,14 +53,14 @@ pub enum FilingType {
 }
 
 impl FilingType {
-    pub fn which(filing_type: &str) -> Result<FilingType, ()> {
+    pub fn which(filing_type: &str) -> Result<FilingType> {
         match filing_type {
             "S-1/A" => Ok(FilingType::SecS1),
             "5" => Ok(FilingType::Sec5),
             "4" => Ok(FilingType::Sec4),
             "4/A" => Ok(FilingType::Sec4A),
             "3" => Ok(FilingType::Sec3),
-            _ => Err(()),
+            _ => Err("Filing not recognized")?,
         }
     }
 }
