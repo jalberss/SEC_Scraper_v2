@@ -215,16 +215,16 @@ mod rss_tests {
         assert_eq!(
             clean_title(Some(
                 &"S-1/A - Tipmefast, Inc. (0001726079) (Filer)".to_owned()
-            )),
-            Ok(("S-1/A", "Tipmefast, Inc.", 1726079))
+            )).unwrap(),
+            ("S-1/A", "Tipmefast, Inc.", 1726079)
         );
     }
 
     #[test]
     fn clean_title_test_standard() {
         assert_eq!(
-            clean_title(Some(&"4 - Wang Janet (0001655081) (Reporting)".to_owned())),
-            Ok(("4", "Wang Janet", 1655081))
+            clean_title(Some(&"4 - Wang Janet (0001655081) (Reporting)".to_owned())).unwrap(),
+            ("4", "Wang Janet", 1655081)
         );
     }
 
@@ -257,7 +257,7 @@ mod rss_tests {
         let mut ignore_set = HashSet::new();
         ignore_set.insert(FilingType::Sec4A);
 
-        assert_eq!(Ok(Vec::new()), clean_xml(vec, ignore_set));
+        assert_eq!(Vec::<SECEntry>::new(), clean_xml(vec, ignore_set).unwrap());
     }
     #[test]
     fn clean_xml_ignore1() {

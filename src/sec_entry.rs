@@ -71,14 +71,14 @@ mod entry_tests {
 
     #[test]
     fn which_test_s1() {
-        assert_eq!(FilingType::which("S-1/A"), Ok(FilingType::SecS1));
+        assert_eq!(FilingType::which("S-1/A").unwrap(), FilingType::SecS1);
     }
 
     #[test]
     fn which_test_345() {
-        assert_eq!(FilingType::which("3"), Ok(FilingType::Sec3));
-        assert_eq!(FilingType::which("4"), Ok(FilingType::Sec4));
-        assert_eq!(FilingType::which("5"), Ok(FilingType::Sec5));
+        assert_eq!(FilingType::which("3").unwrap(), FilingType::Sec3);
+        assert_eq!(FilingType::which("4").unwrap(), FilingType::Sec4);
+        assert_eq!(FilingType::which("5").unwrap(), FilingType::Sec5);
     }
 
 }
