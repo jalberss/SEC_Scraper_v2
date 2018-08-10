@@ -11,3 +11,4 @@ pub mod postgres;
 pub mod read_rss;
 pub mod schema;
 pub mod sec_entry;
+pub mod write_entries;
