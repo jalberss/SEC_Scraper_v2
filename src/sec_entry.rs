@@ -1,4 +1,5 @@
 use crate::errors::*;
+use std::fmt::Write;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SECEntry {
@@ -27,6 +28,16 @@ impl SECEntry {
             date,
             timestamp,
         }
+    }
+
+    pub fn string(&self) -> String {
+        let mut s = String::new();
+        write!(
+            s,
+            "{:#?}\t{}\t{}\t{}\t{}\t{}",
+            self.filing_type, self.name, self.cik, self.accession_number, self.date, self.timestamp
+        );
+        s
     }
 }
 
@@ -79,6 +90,20 @@ mod entry_tests {
         assert_eq!(FilingType::which("3").unwrap(), FilingType::Sec3);
         assert_eq!(FilingType::which("4").unwrap(), FilingType::Sec4);
         assert_eq!(FilingType::which("5").unwrap(), FilingType::Sec5);
+    }
+
+    #[test]
+    fn stringify_entry() {
+        //assert_eq!(FilingType::SecS1.string(), "S-1/A");
+        let entry = SECEntry::new(
+            FilingType::SecS1,
+            String::from("Bollocks"),
+            0,
+            0,
+            0,
+            String::from("Also Bollocks"),
+        );
+        assert_eq!(entry.string(), "SecS1\tBollocks\t0\t0\t0\tAlso Bollocks");
     }
 
 }
