@@ -82,6 +82,8 @@ impl FilingType {
             "D" => Ok(FilingType::SecD),
             "424B2" => Ok(FilingType::Sec424B2),
             "13F-HR" => Ok(FilingType::Sec13FHR),
+            "497" => Ok(FilingType::Sec497),
+            "497K" => Ok(FilingType::Sec497K),
             _ => Err("Filing not recognized")?,
         }
     }

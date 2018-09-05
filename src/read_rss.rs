@@ -71,6 +71,8 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
         let (filing_type, conformed_name, cik) =
             clean_title(element_it.next()).expect("Unable to get title element");
 
+        println!("{:#?} {:#?} {:#?}", &filing_type, &conformed_name, &cik);
+
         let filing_enum = FilingType::which(filing_type).expect("Unable to find filing enum"); //.chain_err(|| "Unknown filing type given")?;
 
         println!("There");
@@ -165,24 +167,23 @@ pub fn clean_timestamp(input: Option<&String>) -> Result<(&String)> {
     }
 }
 ///
-pub fn clean_title(input: Option<&String>) -> Result<(&str, &str, usize)> {
+pub fn clean_title<'a>(input: Option<&'a String>) -> Result<(&'a str, &'a str, usize)> {
     //! TODO: Make Errors that are helpful
     match input {
         Some(t) => {
             /* Get the form name, it may contain a -, which is why we take this approach */
             let split_names = t.split(" - ").collect::<Vec<&str>>();
-
             /* Get the conformed name, and accession number. The accession number is between two parens */
-            let vec = split_names[1]
-                .split(|c| c == '(' || c == ')')
-                .map(str::trim)
-                .collect::<Vec<&str>>();
+
+            let re = Regex::new(r"\((\d+)\)").unwrap();
+            let cik = &re.captures_iter(&t).next().unwrap()[1];
+
+            let name: Vec<&'a str> = (&split_names[1]).split('(').map(&str::trim).collect();
 
             Ok((
                 split_names[0],
-                vec[0],
-                vec[1]
-                    .parse::<usize>()
+                name[0],
+                cik.parse::<usize>()
                     .chain_err(|| "Could not convert to usize")?,
             ))
         }
@@ -333,78 +334,29 @@ mod rss_tests {
     }
 
     #[test]
-    fn
-        "4 - Doyle Amy (0001708785) (Reporting)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001209191-18-049456 <b>Size:</b> 9 KB\n",
-    "2018-09-05T13:14:49-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001209191-18-049456",
-    "4 - LEAR CORP (0000842162) (Issuer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001209191-18-049456 <b>Size:</b> 9 KB\n",
-    "2018-09-05T13:14:49-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001209191-18-049456",
-    "D - CORRE HORIZON FUND, LP (0001751529) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000919574-18-006015 <b>Size:</b> 15 KB\n<br>Item 3C: Investment Company Act Section 3(c)\n<br>Item 3C.7: Section 3(c)(7)\n",
-    "2018-09-05T13:14:10-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0000919574-18-006015",
-    "497 - JNLNY SEPARATE ACCOUNT I (0001045032) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001045032-18-000285 <b>Size:</b> 67 KB\n",
-    "2018-09-05T13:13:47-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001045032-18-000285",
-    "13F-HR - Sturgeon Ventures LLP (0001720346) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001720346-18-000004 <b>Size:</b> 13 KB\n",
-    "2018-09-05T13:12:55-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001720346-18-000004",
-    "6-K - UNILEVER PLC (0000217410) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001564590-18-022654 <b>Size:</b> 60 MB\n",
-    "2018-09-05T13:12:44-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001564590-18-022654",
-    "8-K - CASEYS GENERAL STORES INC (0000726958) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000726958-18-000111 <b>Size:</b> 3 MB\n<br>Item 7.01: Regulation FD Disclosure\n<br>Item 9.01: Financial Statements and Exhibits\n",
-    "2018-09-05T13:12:10-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0000726958-18-000111",
-    "424B2 - JPMorgan Chase Financial Co. LLC (0001665650) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001615774-18-009188 <b>Size:</b> 313 KB\n",
-    "2018-09-05T13:11:34-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001615774-18-009188",
-    "424B2 - JPMORGAN CHASE & CO (0000019617) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001615774-18-009188 <b>Size:</b> 313 KB\n",
-    "2018-09-05T13:11:34-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001615774-18-009188",
-    "497 - JACKSON NATIONAL SEPARATE ACCOUNT V (0001072423) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001072423-18-000019 <b>Size:</b> 69 KB\n",
-    "2018-09-05T13:11:08-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001072423-18-000019",
-    "FWP - BANK OF NOVA SCOTIA (0000009631) (Subject)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000914121-18-001656 <b>Size:</b> 53 KB\n",
-    "2018-09-05T13:10:41-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0000914121-18-001656",
-    "4 - WILLIAMS PAUL S (0001236458) (Reporting)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001209191-18-049454 <b>Size:</b> 4 KB\n",
-    "2018-09-05T13:08:50-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001209191-18-049454",
-    "4 - ESSENDANT INC (0000355999) (Issuer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001209191-18-049454 <b>Size:</b> 4 KB\n",
-    "2018-09-05T13:08:50-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001209191-18-049454",
-    "D - UTAH LITHOTRIPSY LP (0001170568) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001170568-18-000001 <b>Size:</b> 5 KB\n",
-    "2018-09-05T13:08:43-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001170568-18-000001",
-    "497 - JACKSON NATIONAL SEPARATE ACCOUNT III (0001045034) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001045034-18-000020 <b>Size:</b> 69 KB\n",
-    "2018-09-05T13:08:42-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001045034-18-000020",
-    "FWP - CREDIT SUISSE AG (0001053092) (Subject)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000950103-18-010482 <b>Size:</b> 55 KB\n",
-    "2018-09-05T13:07:31-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0000950103-18-010482",
-    "8-K/A - BENCHMARK 2018-B2 Mortgage Trust (0001728339) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001539497-18-001414 <b>Size:</b> 23 KB\n<br>Item 8.01: Other Events\n",
-    "2018-09-05T13:06:34-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0001539497-18-001414",
-    "497 - JACKSON NATIONAL SEPARATE ACCOUNT - I (0000927730) (Filer)",
-    "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000927730-18-000500 <b>Size:</b> 69 KB\n",
-    "2018-09-05T13:06:11-04:00",
-    "urn:tag:sec.gov,2008:accession-number=0000927730-18-000500",
-    Iter(["497 - JACKSON NATIONAL SEPARATE ACCOUNT - I (0000927730) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000927730-18-000500 <b>Size:</b> 69 KB\n", "2018-09-05T13:06:11-04:00", "urn:tag:sec.gov,2008:accession-number=0000927730-18-000500", "FWP - BARCLAYS BANK PLC (0000312070) (Subject)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000950103-18-010481 <b>Size:</b> 115 KB\n", "2018-09-05T13:06:02-04:00", "urn:tag:sec.gov,2008:accession-number=0000950103-18-010481", "N-30B-2 - COUNTRY INVESTORS VARIABLE ANNUITY ACCOUNT (0001223662) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000910819-18-000067 <b>Size:</b> 3 KB\n", "2018-09-05T13:05:34-04:00", "urn:tag:sec.gov,2008:accession-number=0000910819-18-000067", "497 - VALIC Co I (0000719423) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001104659-18-055258 <b>Size:</b> 603 KB\n", "2018-09-05T13:05:23-04:00", "urn:tag:sec.gov,2008:accession-number=0001104659-18-055258", "4 - Knickerbocker Aron Marc (0001578766) (Reporting)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001209191-18-049452 <b>Size:</b> 7 KB\n", "2018-09-05T13:05:11-04:00", "urn:tag:sec.gov,2008:accession-number=0001209191-18-049452", "4 - FIVE PRIME THERAPEUTICS INC (0001175505) (Issuer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001209191-18-049452 <b>Size:</b> 7 KB\n", "2018-09-05T13:05:11-04:00", "urn:tag:sec.gov,2008:accession-number=0001209191-18-049452", "424B2 - CREDIT SUISSE AG (0001053092) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000950103-18-010480 <b>Size:</b> 253 KB\n", "2018-09-05T13:05:09-04:00", "urn:tag:sec.gov,2008:accession-number=0000950103-18-010480", "497 - JACKSON NATIONAL SEPARATE ACCOUNT - I (0000927730) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000927730-18-000499 <b>Size:</b> 69 KB\n", "2018-09-05T13:04:23-04:00", "urn:tag:sec.gov,2008:accession-number=0000927730-18-000499", "4 - Turitz Andrew (0001726221) (Reporting)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001182489-18-000322 <b>Size:</b> 8 KB\n", "2018-09-05T13:04:11-04:00", "urn:tag:sec.gov,2008:accession-number=0001182489-18-000322", "4 - Teladoc Health, Inc. (0001477449) (Issuer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001182489-18-000322 <b>Size:</b> 8 KB\n", "2018-09-05T13:04:11-04:00", "urn:tag:sec.gov,2008:accession-number=0001182489-18-000322", "424B2 - BARCLAYS BANK PLC (0000312070) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000950103-18-010479 <b>Size:</b> 369 KB\n", "2018-09-05T13:04:10-04:00", "urn:tag:sec.gov,2008:accession-number=0000950103-18-010479", "DEF 14A - American Funds Retirement Income Portfolio Series (0001640102) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - AMERICAN FUNDS DEVELOPING WORLD GROWTH & INCOME FUND (0001584433) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - AMERICAN FUNDS INFLATION LINKED BOND FUND (0001553197) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - AMERICAN FUNDS CORPORATE BOND FUND (0001553195) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - AMERICAN FUNDS PORTFOLIO SERIES (0001537151) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - AMERICAN FUNDS GLOBAL BALANCED FUND (0001505612) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - AMERICAN FUNDS TAX-EXEMPT FUND OF NEW YORK (0001496999) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - AMERICAN FUNDS MORTGAGE FUND (0001496998) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - American Funds U.S. Government Money Market Fund (0001454975) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - INTERNATIONAL GROWTH & INCOME FUND (0001439297) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - American Funds Target Date Retirement Series (0001380175) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905", "DEF 14A - Short-Term Bond Fund of America (0001368040) (Filer)", "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000051931-18-000905 <b>Size:</b> 209 KB\n", "2018-09-05T13:03:32-04:00", "urn:tag:sec.gov,2008:accession-number=0000051931-18-000905"])
+    fn clean_xml_mega_mega_test() {
+        let test = vec![
+            "497 - JACKSON NATIONAL SEPARATE ACCOUNT - I (0000927730) (Filer)",
+            "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000927730-18-000500 <b>Size:</b> 69 KB\n",
+            "2018-09-05T13:06:11-04:00",
+            "urn:tag:sec.gov,2008:accession-number=0000927730-18-000500",
+        ].into_iter()
+        .map(String::from)
+        .collect::<Vec<String>>();
+
+        let entry = SECEntry::new(
+            FilingType::Sec497,
+            String::from("JACKSON NATIONAL SEPARATE ACCOUNT"),
+            927730,
+            92773018000500,
+            20180905,
+            String::from("2018-09-05T13:06:11-04:00"),
+        );
+
+        if let Ok(mut x) = clean_xml(test, HashSet::new()) {
+            assert_eq!(x.pop().unwrap(), entry);
+        } else {
+            assert!(false);
+        }
+    }
 }
