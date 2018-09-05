@@ -228,7 +228,7 @@ mod rss_tests {
     #[test]
     #[ignore]
     fn read_rss_test() {
-        assert_eq!(read_rss("https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom").unwrap(), StatusCode::Ok);
+        assert!(read_rss("https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom").is_ok());
         assert!(read_rss("asdfajc").is_err());
     }
 

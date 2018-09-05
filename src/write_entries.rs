@@ -13,6 +13,10 @@ pub fn write_table(path: &Path, entries: Vec<SECEntry>) -> Result<()> {
         file,
         "Filing Type\tName\tCIK\tAccession Number\tDate\tTime\n"
     );
+    write_entries(file, entries)
+}
+
+fn write_entries(file: File, entries: Vec<SECEntry>) -> Result<()> {
     let mut entries: Vec<String> = entries
         .iter()
         .map(|entry| entry.string())
@@ -34,13 +38,16 @@ mod write_entries_tests {
 
     #[test]
     fn write_table_test_basic() {
-        assert!(write_table(Path::new("asdf.txt"), vec![]).is_ok());
-        std::fs::remove_file("asdf.txt").is_ok();
+        let name = String::from("asdf.txt");
+        File::create(&name);
+        assert!(write_entries(File::open(&name).unwrap(), vec![]).is_ok());
+        std::fs::remove_file(&name).is_ok();
     }
 
     #[test]
     fn write_table_test_intermediate() {
         let name = String::from("int.txt");
+        let file = File::create(&name).unwrap();
 
         let entry = SECEntry::new(
             FilingType::SecS1,
@@ -51,7 +58,7 @@ mod write_entries_tests {
             String::from("Also Bollocks"),
         );
 
-        assert!(write_table(Path::new(&name), vec![entry]).is_ok());
+        assert!(write_entries(file, vec![entry]).is_ok());
 
         let mut f = File::open(&name).expect("file not found");
 
@@ -69,6 +76,8 @@ mod write_entries_tests {
     #[test]
     fn write_table_test_advanced() {
         let name = String::from("adv.txt");
+
+        let file = File::create(&name).unwrap();
 
         let entry1 = SECEntry::new(
             FilingType::SecS1,
@@ -88,10 +97,9 @@ mod write_entries_tests {
             String::from("Also Bollocks"),
         );
 
-        assert!(write_table(Path::new(&name), vec![entry1, entry2]).is_ok());
+        assert!(write_entries(file, vec![entry1, entry2]).is_ok());
 
         let mut f = File::open(&name).expect("file not found");
-
         let mut string = String::new();
 
         f.read_to_string(&mut string);
