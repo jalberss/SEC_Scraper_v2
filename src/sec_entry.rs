@@ -49,6 +49,7 @@ pub enum FilingType {
     Sec4,
     Sec4A,
     Sec5,
+    Sec6K,
     SecD,
     SecDA,
     SecFWP,
@@ -61,6 +62,8 @@ pub enum FilingType {
     Sec10K,
     Sec10Q,
     Sec8K,
+    Sec8KA,
+    Sec13FHR,
 }
 
 impl FilingType {
@@ -71,6 +74,14 @@ impl FilingType {
             "4" => Ok(FilingType::Sec4),
             "4/A" => Ok(FilingType::Sec4A),
             "3" => Ok(FilingType::Sec3),
+            "6-K" => Ok(FilingType::Sec6K),
+            "FWP" => Ok(FilingType::SecFWP),
+            "8-K/A" => Ok(FilingType::Sec8KA),
+            "8-K" => Ok(FilingType::Sec8K),
+            "497" => Ok(FilingType::Sec497),
+            "D" => Ok(FilingType::SecD),
+            "424B2" => Ok(FilingType::Sec424B2),
+            "13F-HR" => Ok(FilingType::Sec13FHR),
             _ => Err("Filing not recognized")?,
         }
     }
