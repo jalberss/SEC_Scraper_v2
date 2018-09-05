@@ -60,10 +60,10 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 
     let mut entries: Vec<SECEntry> = Vec::new();
     assert!(xml.len() % NUM_ENTRY_ELEMENTS == 0);
+
     // Routine for every 4 entries
-    println!("{:#?}", xml);
     let mut element_it = xml.iter();
-    for _ in xml.iter().step_by(NUM_ENTRY_ELEMENTS) {
+    for x in xml.iter().step_by(NUM_ENTRY_ELEMENTS) {
         let (filing_type, conformed_name, cik) =
             clean_title(element_it.next()).expect("Unable to get title element");
 
@@ -84,15 +84,20 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
                 .chain_err(|| "Unable to get timestamp element")?;
             element_it.next();
 
-            let entry = SECEntry::new(
-                filing_enum,
-                conformed_name.to_owned(),
-                cik,
-                acc_number,
-                date,
-                timestamp.to_owned(),
-            );
-            entries.push(entry);
+            if let None = has_accession_number(acc_number) {
+                let entry = SECEntry::new(
+                    filing_enum,
+                    conformed_name.to_owned(),
+                    cik,
+                    acc_number,
+                    date,
+                    timestamp.to_owned(),
+                );
+                //write_accession_number(acc_number).expect("Unable to write accession number");
+                entries.push(entry);
+            } else {
+                println!("Already Found");
+            }
         }
     }
     Ok(entries)
@@ -101,26 +106,14 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 /// This function will check to see if an accesion number is not unique, and thus
 /// must be ignore. The Programmer regrets this function, and will replace it with
 /// database query
-fn check_accession_number(acc_number: usize, file_path: &Path) -> Option<Vec<Post>> {
+fn has_accession_number(acc_number: usize) -> Option<Vec<Post>> {
     let conn = establish_connection();
     get_number(&conn, acc_number)
+}
 
-    // let mut file = File::open(file_path)?;
-    // let mut containsP: bool;
-
-    // {
-    //     let mut buf_reader = BufReader::new(&mut file);
-    //     let mut contents = String::new();
-    //     buf_reader.read_to_string(&mut contents)?;
-    //     containsP = contents.contains(&acc_number.to_string())
-    // }
-    // if containsP {
-    //     Err(std::io::Error::new(std::io::ErrorKind::Other, "Accession Number already present")) //ToDo error chain
-    // } else {
-    //     let mut buf_writer = LineWriter::new(&mut file);
-    //     buf_writer.write(acc_number.to_string().as_bytes())?;
-    //     Ok(())
-    // }
+fn write_accession_number(acc_number: usize) -> Result<(i32, String)> {
+    let conn = establish_connection();
+    write_number(&conn, acc_number).chain_err(|| "Unable to write accession Number")
 }
 
 /// This function cleans the string received in the filing information from the xml
@@ -289,7 +282,7 @@ mod rss_tests {
             String::from("2018-07-05T20:51:01-04:00"),
         );
 
-        assert_eq!(Some(entry), clean_xml(vec, ignore_set).unwrap().pop());
+        assert_eq!(None, clean_xml(vec, ignore_set).unwrap().pop());
     }
 
     #[test]
