@@ -5,10 +5,14 @@ use std::path::Path;
 use crate::errors::*;
 use crate::sec_entry::{FilingType, SECEntry};
 
-fn write_table(path: &Path, entries: Vec<SECEntry>) -> Result<()> {
+pub fn write_table(path: &Path, entries: Vec<SECEntry>) -> Result<()> {
     let mut file = File::create(path).chain_err(|| format!("{:#?} not found", path))?;
     // The most functional Rust I have ever written
 
+    write!(
+        file,
+        "Filing Type\tName\tCIK\tAccession Number\tDate\tTime\n"
+    );
     let mut entries: Vec<String> = entries
         .iter()
         .map(|entry| entry.string())

@@ -12,16 +12,13 @@ use crate::errors::*;
 
 const NUM_ENTRY_ELEMENTS: usize = 4;
 
-const LOG_FILE: &str = "accession_numbers.txt";
-
-pub fn read_rss(website: &str) -> Result<StatusCode> {
+pub fn read_rss(website: &str) -> Result<Vec<SECEntry>> {
     let xml = reqwest::get(website)
         .chain_err(|| "Unable to reach website")?
         .text()
         .chain_err(|| "Unable to get website text")?;
     let parsed_xml = parse_xml(&xml);
-    let entries = clean_xml(parsed_xml, HashSet::new()); //TODO replace
-    Ok(reqwest::StatusCode::Ok)
+    clean_xml(parsed_xml, HashSet::new()) //TODO replace
 }
 
 pub fn parse_xml(xml: &str) -> Vec<String> {
