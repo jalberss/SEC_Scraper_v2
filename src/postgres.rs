@@ -44,7 +44,7 @@ pub fn get_number(conn: &PgConnection, acc: usize) -> Option<Vec<Post>> {
     let acc = acc.to_string();
     let result = posts.filter(acc_number.like(acc)).load::<Post>(conn);
     match result {
-        Ok(x) => Some(x),
+        Ok(ref x) if (!x.is_empty()) => Some(x.to_owned()),
         _ => None,
     }
 }

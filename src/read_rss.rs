@@ -364,7 +364,7 @@ mod rss_tests {
     fn accession_number_test() {
         let x = 1337;
         delete_accession_number(x);
-        assert_eq!(has_accession_number(x).unwrap(), vec![]);
+        assert_eq!(has_accession_number(x), None);
         write_accession_number(x);
         assert_eq!(
             has_accession_number(x).unwrap().pop().unwrap().acc_number,

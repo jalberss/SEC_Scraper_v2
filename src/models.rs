@@ -1,7 +1,7 @@
 use super::schema::posts;
 use super::schema::test_posts;
 
-#[derive(Queryable, Debug, PartialEq, Eq)]
+#[derive(Queryable, Debug, Clone, PartialEq, Eq)]
 pub struct Post {
     pub id: i32,
     pub acc_number: String,
