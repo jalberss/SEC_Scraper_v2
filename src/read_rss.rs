@@ -61,21 +61,14 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
     let mut entries: Vec<SECEntry> = Vec::new();
     assert!(xml.len() % NUM_ENTRY_ELEMENTS == 0);
 
-    println!("Ignore Set: {:#?}", &ignore);
-    println!("{:#?}", &xml);
-
     // Routine for every 4 entries
     let mut element_it = xml.iter();
-    for x in xml.iter().step_by(NUM_ENTRY_ELEMENTS) {
-        println!("{}\n{:?}", &x, &element_it);
+    for _ in xml.iter().step_by(NUM_ENTRY_ELEMENTS) {
         let (filing_type, conformed_name, cik) =
             clean_title(element_it.next()).expect("Unable to get title element");
 
-        println!("{:#?} {:#?} {:#?}", &filing_type, &conformed_name, &cik);
-
         let filing_enum = FilingType::which(filing_type).expect("Unable to find filing enum"); //.chain_err(|| "Unknown filing type given")?;
 
-        println!("There");
         /* Ignore if of certain filing type(s)*/
         if ignore.contains(&filing_enum) {
             ignore_filing(&mut element_it);
@@ -90,6 +83,7 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
                 .chain_err(|| "Unable to get timestamp element")?;
             element_it.next();
 
+            println!("cik: {:#?}", &cik);
             let entry = SECEntry::new(
                 filing_enum,
                 conformed_name.to_owned(),
@@ -98,7 +92,7 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
                 date,
                 timestamp.to_owned(),
             );
-            println!("Entry: {:#?}", &entry);
+
             //write_accession_number(acc_number).expect("Unable to write accession number");
             entries.push(entry);
         }
@@ -117,6 +111,11 @@ fn has_accession_number(acc_number: usize) -> Option<Vec<Post>> {
 fn write_accession_number(acc_number: usize) -> Result<(i32, String)> {
     let conn = establish_connection();
     write_number(&conn, acc_number).chain_err(|| "Unable to write accession Number")
+}
+
+fn delete_accession_number(acc_number: usize) -> Result<usize> {
+    let conn = establish_connection();
+    delete_number(&conn, acc_number).chain_err(|| "Unable to write accession Number")
 }
 
 /// This function cleans the string received in the filing information from the xml
@@ -251,6 +250,7 @@ mod rss_tests {
 
         assert_eq!(Vec::<SECEntry>::new(), clean_xml(vec, ignore_set).unwrap());
     }
+
     #[test]
     fn clean_xml_ignore1() {
         let entry = SECEntry::new(
@@ -358,5 +358,18 @@ mod rss_tests {
         } else {
             assert!(false);
         }
+    }
+
+    #[test]
+    fn accession_number_test() {
+        let x = 1337;
+        delete_accession_number(x);
+        assert_eq!(has_accession_number(x).unwrap(), vec![]);
+        write_accession_number(x);
+        assert_eq!(
+            has_accession_number(x).unwrap().pop().unwrap().acc_number,
+            String::from("1337")
+        );
+        assert!(delete_accession_number(x).is_ok());
     }
 }

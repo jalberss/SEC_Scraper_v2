@@ -32,6 +32,13 @@ pub fn write_number(
         .get_result(conn)
 }
 
+pub fn delete_number(conn: &PgConnection, acc: usize) -> Result<usize, diesel::result::Error> {
+    use super::schema::posts::dsl::*;
+
+    let acc = acc.to_string();
+    diesel::delete(posts.filter(acc_number.like(acc))).execute(conn)
+}
+
 pub fn get_number(conn: &PgConnection, acc: usize) -> Option<Vec<Post>> {
     use super::schema::posts::dsl::*;
     let acc = acc.to_string();
