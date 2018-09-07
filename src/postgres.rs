@@ -49,6 +49,20 @@ pub fn get_number(conn: &PgConnection, acc: usize) -> Option<Vec<Post>> {
     }
 }
 
+pub fn get_numbers(conn: &PgConnection) -> Vec<usize> {
+    use super::schema::posts::dsl::*;
+
+    let results = posts
+        .limit(5)
+        .load::<Post>(conn)
+        .expect("Error loading posts");
+
+    results
+        .iter()
+        .map(|x| x.acc_number.parse::<usize>().unwrap())
+        .collect::<Vec<usize>>()
+}
+
 pub fn get_posts(conn: &PgConnection) {
     use super::schema::posts::dsl::*;
 
@@ -84,6 +98,7 @@ mod postgres_tests {
     fn write_test() {
         use crate::schema::posts::dsl::*;
         let conn = establish_connection();
+        delete_all_posts(&conn);
         write_number(&conn, 6);
         let results = posts
             .limit(1)
@@ -103,5 +118,16 @@ mod postgres_tests {
             .load::<Post>(&conn)
             .expect("Error Loading posts");
         assert!(results.iter().next().is_none());
+    }
+
+    #[test]
+    fn get_numbers_test() {
+        let conn = establish_connection();
+        delete_all_posts(&conn);
+
+        write_number(&conn, 1);
+        write_number(&conn, 2);
+        write_number(&conn, 3);
+        assert_eq!(vec![1, 2, 3], get_numbers(&conn));
     }
 }
