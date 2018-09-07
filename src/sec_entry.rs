@@ -64,10 +64,24 @@ pub enum FilingType {
     Sec8K,
     Sec8KA,
     Sec13FHR,
+    Sec13GA,
+    SecPOSAM,
+    Sec424B5,
+    SecPRE14A,
+    SecDFAN14A,
+    SecSC13DA,
+    Sec144,
+    Sec13G,
+    SecF10,
+    Sec425,
+    SecF3D,
+    SecPRER14A,
+    SecPRE14C,
 }
 
 impl FilingType {
     pub fn which(filing_type: &str) -> Result<FilingType> {
+        println!("{}", filing_type);
         match filing_type {
             "S-1/A" => Ok(FilingType::SecS1),
             "5" => Ok(FilingType::Sec5),
@@ -76,14 +90,28 @@ impl FilingType {
             "3" => Ok(FilingType::Sec3),
             "6-K" => Ok(FilingType::Sec6K),
             "FWP" => Ok(FilingType::SecFWP),
+            "425" => Ok(FilingType::Sec425),
             "8-K/A" => Ok(FilingType::Sec8KA),
             "8-K" => Ok(FilingType::Sec8K),
             "497" => Ok(FilingType::Sec497),
             "D" => Ok(FilingType::SecD),
             "424B2" => Ok(FilingType::Sec424B2),
             "13F-HR" => Ok(FilingType::Sec13FHR),
+            "SC 13G" => Ok(FilingType::Sec13G),
+            "SC 13G/A" => Ok(FilingType::Sec13GA),
+            "SC 13D/A" => Ok(FilingType::SecSC13DA),
             "497" => Ok(FilingType::Sec497),
             "497K" => Ok(FilingType::Sec497K),
+            "POS AM" => Ok(FilingType::SecPOSAM),
+            "D/A" => Ok(FilingType::SecDA),
+            "424B5" => Ok(FilingType::Sec424B5),
+            "PRE 14A" => Ok(FilingType::SecPRE14A),
+            "DFAN14A" => Ok(FilingType::SecDFAN14A),
+            "144" => Ok(FilingType::Sec144),
+            "F-10" => Ok(FilingType::SecF10),
+            "F-3D" => Ok(FilingType::SecF3D),
+            "PRER14A" => Ok(FilingType::SecPRER14A),
+            "PRE 14C" => Ok(FilingType::SecPRE14C),
             _ => Err("Filing not recognized")?,
         }
     }

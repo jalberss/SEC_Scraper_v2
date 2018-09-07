@@ -8,14 +8,14 @@ use dotenv::dotenv;
 use std::env;
 
 // TODO This should return a result
-pub fn establish_connection() -> PgConnection {
+pub fn establish_connection(url: &str) -> PgConnection {
     dotenv().ok();
 
     if let Ok(database_url) = env::var("DATABASE_URL") {
         PgConnection::establish(&database_url)
             .expect(&format!("Error connecting to {}", database_url))
     } else {
-        PgConnection::establish("asdf.txt").expect("")
+        PgConnection::establish(&url).expect("")
     }
 }
 
@@ -95,13 +95,13 @@ mod postgres_tests {
     #[test]
     fn connection_test() {
         // Test will panic otherwise
-        establish_connection();
+        establish_connection("");
     }
 
     #[test]
     fn write_test() {
         use crate::schema::posts::dsl::*;
-        let conn = establish_connection();
+        let conn = establish_connection("");
         delete_all_posts(&conn);
         write_number(&conn, 6);
         let results = posts
@@ -114,7 +114,7 @@ mod postgres_tests {
     #[test]
     fn delete_test() {
         use crate::schema::posts::dsl::*;
-        let conn = establish_connection();
+        let conn = establish_connection("");
         write_number(&conn, 6);
         delete_all_posts(&conn);
         let results = posts
@@ -126,7 +126,7 @@ mod postgres_tests {
 
     #[test]
     fn get_numbers_test() {
-        let conn = establish_connection();
+        let conn = establish_connection("");
         delete_all_posts(&conn);
 
         write_number(&conn, 1);
