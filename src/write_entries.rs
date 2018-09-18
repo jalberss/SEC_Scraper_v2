@@ -7,7 +7,6 @@ use crate::sec_entry::{FilingType, SECEntry};
 
 pub fn write_table(path: &Path, entries: Vec<SECEntry>) -> Result<()> {
     let mut file = File::create(path).chain_err(|| format!("{:#?} not found", path))?;
-    // The most functional Rust I have ever written
 
     write!(
         file,

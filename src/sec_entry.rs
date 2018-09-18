@@ -9,6 +9,7 @@ pub struct SECEntry {
     accession_number: usize,
     date: usize,
     timestamp: String,
+    url: String,
 }
 
 impl SECEntry {
@@ -20,6 +21,8 @@ impl SECEntry {
         date: usize,
         timestamp: String,
     ) -> SECEntry {
+        //get_url();
+
         SECEntry {
             filing_type,
             name,
@@ -27,6 +30,7 @@ impl SECEntry {
             accession_number,
             date,
             timestamp,
+            url: String::new(),
         }
     }
 
@@ -36,6 +40,25 @@ impl SECEntry {
             s,
             "{:#?}\t{}\t{}\t{}\t{}\t{}",
             self.filing_type, self.name, self.cik, self.accession_number, self.date, self.timestamp
+        );
+        s
+    }
+    fn get_url(cik: usize, acc: usize) -> String {
+        let mut s = String::new();
+        let size_url = 18;
+
+        let mut acc_hypen = acc.to_string();
+        while (acc_hypen.len() < size_url) {
+            acc_hypen.insert(0, '0');
+        }
+        let acc = acc_hypen.clone();
+        acc_hypen.insert(acc_hypen.len() - 6, '-');
+        acc_hypen.insert(acc_hypen.len() - 9, '-');
+
+        write!(
+            s,
+            "https://www.sec.gov/Archives/edgar/data/{}/{}/{}-index.htm",
+            cik, acc, acc_hypen
         );
         s
     }
@@ -135,7 +158,6 @@ mod entry_tests {
 
     #[test]
     fn stringify_entry() {
-        //assert_eq!(FilingType::SecS1.string(), "S-1/A");
         let entry = SECEntry::new(
             FilingType::SecS1,
             String::from("Bollocks"),
@@ -145,6 +167,16 @@ mod entry_tests {
             String::from("Also Bollocks"),
         );
         assert_eq!(entry.string(), "SecS1\tBollocks\t0\t0\t0\tAlso Bollocks");
+    }
+
+    #[test]
+    fn get_url_test() {
+        //https://www.sec.gov/Archives/edgar/data/894158/000114420418049861/0001144204-18-049861-index.htm
+        let mut s = SECEntry::get_url(894158, 114420418049861);
+        assert_eq!(s,"https://www.sec.gov/Archives/edgar/data/894158/000114420418049861/0001144204-18-049861-index.htm");
+
+        s = SECEntry::get_url(1525201, 90445418000574);
+        assert_eq!(s,"https://www.sec.gov/Archives/edgar/data/1525201/000090445418000574/0000904454-18-000574-index.htm");
     }
 
 }
