@@ -21,7 +21,7 @@ impl SECEntry {
         date: usize,
         timestamp: String,
     ) -> SECEntry {
-        //get_url();
+        let url_ = SECEntry::get_url(cik, accession_number);
 
         SECEntry {
             filing_type,
@@ -30,7 +30,7 @@ impl SECEntry {
             accession_number,
             date,
             timestamp,
-            url: String::new(),
+            url: url_,
         }
     }
 
@@ -38,12 +38,18 @@ impl SECEntry {
         let mut s = String::new();
         write!(
             s,
-            "{:#?}\t{}\t{}\t{}\t{}\t{}",
-            self.filing_type, self.name, self.cik, self.accession_number, self.date, self.timestamp
+            "{:#?}\t{}\t{}\t{}\t{}\t{}\t{}",
+            self.filing_type,
+            self.name,
+            self.cik,
+            self.accession_number,
+            self.date,
+            self.timestamp,
+            self.url,
         );
         s
     }
-    fn get_url(cik: usize, acc: usize) -> String {
+    pub fn get_url(cik: usize, acc: usize) -> String {
         let mut s = String::new();
         let size_url = 18;
 
@@ -166,7 +172,14 @@ mod entry_tests {
             0,
             String::from("Also Bollocks"),
         );
-        assert_eq!(entry.string(), "SecS1\tBollocks\t0\t0\t0\tAlso Bollocks");
+
+        let mut oracle = String::new();
+        write!(
+            oracle,
+            "SecS1\tBollocks\t0\t0\t0\tAlso Bollocks\t{}",
+            SECEntry::get_url(0, 0)
+        );
+        assert_eq!(oracle, entry.string());
     }
 
     #[test]

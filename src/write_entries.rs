@@ -1,3 +1,4 @@
+use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::{BufWriter, Read, Write};
 use std::path::Path;
@@ -10,16 +11,18 @@ pub fn write_table(path: &Path, entries: Vec<SECEntry>) -> Result<()> {
 
     write!(
         file,
-        "Filing Type\tName\tCIK\tAccession Number\tDate\tTime\n"
+        "Filing Type\tName\tCIK\tAccession Number\tDate\tTime\nUrl\n"
     );
     write_entries(file, entries)
 }
 
-fn write_entries(file: File, entries: Vec<SECEntry>) -> Result<()> {
+fn write_entries(mut file: File, entries: Vec<SECEntry>) -> Result<()> {
     let mut entries: Vec<String> = entries
         .iter()
         .map(|entry| entry.string())
         .collect::<Vec<String>>();
+
+    println!("write entries: {:#?}", entries);
 
     entries.iter_mut().for_each(|entry| entry.push('\n'));
 
@@ -57,6 +60,8 @@ mod write_entries_tests {
             String::from("Also Bollocks"),
         );
 
+        println!("{:#?}", entry);
+
         assert!(write_entries(file, vec![entry]).is_ok());
 
         let mut f = File::open(&name).expect("file not found");
@@ -65,11 +70,16 @@ mod write_entries_tests {
 
         f.read_to_string(&mut string);
 
-        let oracle = String::from("SecS1\tBollocks\t0\t0\t0\tAlso Bollocks\n");
+        let mut oracle = String::new();
+        write!(
+            oracle,
+            "SecS1\tBollocks\t0\t0\t0\tAlso Bollocks\t{}\n",
+            SECEntry::get_url(0, 0),
+        );
 
-        assert_eq!(oracle, string);
+        assert_eq!(string, oracle);
 
-        std::fs::remove_file(&name);
+        assert!(std::fs::remove_file(&name).is_ok());
     }
 
     #[test]
@@ -103,13 +113,16 @@ mod write_entries_tests {
 
         f.read_to_string(&mut string);
 
-        let oracle = String::from(
-            "SecS1\tBollocks\t0\t0\t0\tAlso Bollocks\nSecS1\tBollocks\t0\t0\t0\tAlso Bollocks\n",
-        );
+        let url = SECEntry::get_url(0, 0);
 
+        let mut oracle = String::new();
+        write!(oracle,
+            "SecS1\tBollocks\t0\t0\t0\tAlso Bollocks\t{}\nSecS1\tBollocks\t0\t0\t0\tAlso Bollocks\t{}\n",&url,&url);
+
+        println!("{}", string);
         assert_eq!(oracle, string);
 
-        std::fs::remove_file(&name);
+        assert!(std::fs::remove_file(&name).is_ok());
     }
 
 }
