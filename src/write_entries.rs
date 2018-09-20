@@ -1,10 +1,10 @@
 use std::fmt::Write as FmtWrite;
 use std::fs::File;
-use std::io::{BufWriter, Read, Write};
+use std::io::{Read, Write};
 use std::path::Path;
 
 use crate::errors::*;
-use crate::sec_entry::{FilingType, SECEntry};
+use crate::sec_entry::SECEntry;
 
 pub fn write_table(path: &Path, entries: Vec<SECEntry>) -> Result<()> {
     let mut file = File::create(path).chain_err(|| format!("{:#?} not found", path))?;
@@ -37,11 +37,12 @@ fn write_entries(mut file: File, entries: Vec<SECEntry>) -> Result<()> {
 #[cfg(test)]
 mod write_entries_tests {
     use super::*;
+    use crate::sec_entry::FilingType;
 
     #[test]
     fn write_table_test_basic() {
         let name = String::from("asdf.txt");
-        File::create(&name);
+        File::create(&name).expect("unable to open file");
         assert!(write_entries(File::open(&name).unwrap(), vec![]).is_ok());
         std::fs::remove_file(&name).is_ok();
     }

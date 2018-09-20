@@ -2,10 +2,7 @@ use crate::models::Post;
 use crate::postgres::*;
 use crate::sec_entry::{FilingType, SECEntry};
 use regex::Regex;
-use reqwest::StatusCode;
 use std::collections::HashSet;
-use std::io::{BufReader, LineWriter, Read, Write};
-use std::{fs::File, path::Path};
 use xml::reader::{EventReader, XmlEvent};
 
 use crate::errors::*;
@@ -255,7 +252,7 @@ mod rss_tests {
 
     #[test]
     fn clean_xml_ignore1() {
-        let entry = SECEntry::new(
+        let _entry = SECEntry::new(
             FilingType::Sec4A,
             String::from("Wilson Andrew"),
             1545193,

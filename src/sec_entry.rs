@@ -54,7 +54,7 @@ impl SECEntry {
         let size_url = 18;
 
         let mut acc_hypen = acc.to_string();
-        while (acc_hypen.len() < size_url) {
+        while acc_hypen.len() < size_url {
             acc_hypen.insert(0, '0');
         }
         let acc = acc_hypen.clone();
@@ -153,6 +153,7 @@ mod entry_tests {
     #[test]
     fn which_test_s1() {
         assert_eq!(FilingType::which("S-1/A").unwrap(), FilingType::SecS1);
+        assert_eq!(FilingType::which("497").unwrap(), FilingType::Sec497);
     }
 
     #[test]

@@ -3,7 +3,6 @@ extern crate diesel;
 use super::models::{NewPost, Post};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use diesel::result::QueryResult;
 use dotenv::dotenv;
 use std::env;
 
