@@ -2,15 +2,36 @@
 //!
 //! -> could be based on time
 //! -> could be based on when the rss feed updates
-use http::HttpTryFrom;
+use crate::errors::*;
 use reqwest::header::IF_NONE_MATCH;
-use reqwest::*;
 
-pub fn get_rss(website: &str, etag: &str) -> Result<()> {
+pub fn get_rss(website: &str, etag: Option<&str>) -> Result<String> {
     let client = reqwest::Client::new();
-    let res = client
-        .get("https://www.rust-lang.org")
-        .header(IF_NONE_MATCH, etag)
-        .send()?;
-    Ok(())
+    let mut res = match etag {
+        Some(e) => client
+            .get(website)
+            .header(IF_NONE_MATCH, e)
+            .send()
+            .chain_err(|| "No Updated Website")?,
+        None => client
+            .get(website)
+            .send()
+            .chain_err(|| "Website not reached")?,
+    };
+    res.text().chain_err(|| "Unable to extract text")
+}
+
+#[cfg(test)]
+mod timing_test {
+    use super::*;
+
+    #[test]
+    fn get_rss_1() {
+        let res = get_rss("askduhalskjfgnawuehflnk", None);
+        assert!(res.is_err());
+        match res {
+            Err(x) => assert!(x.kind().description() == "Website not reached"),
+            _ => assert!(false),
+        };
+    }
 }
