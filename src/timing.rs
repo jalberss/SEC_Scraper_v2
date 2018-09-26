@@ -3,9 +3,9 @@
 //! -> could be based on time
 //! -> could be based on when the rss feed updates
 use crate::errors::*;
-use reqwest::header::IF_NONE_MATCH;
+use reqwest::header::{ETAG, IF_NONE_MATCH};
 
-pub fn get_rss(website: &str, etag: Option<&str>) -> Result<String> {
+pub fn get_rss(website: &str, etag: Option<&str>) -> Result<(String, String)> {
     let client = reqwest::Client::new();
     let mut res = match etag {
         Some(e) => client
@@ -18,7 +18,16 @@ pub fn get_rss(website: &str, etag: Option<&str>) -> Result<String> {
             .send()
             .chain_err(|| "Website not reached")?,
     };
-    res.text().chain_err(|| "Unable to extract text")
+    let etag = res
+        .headers()
+        .get(ETAG)
+        .chain_err(|| "Could not get etag")?
+        .to_str()
+        .unwrap()
+        .to_owned();
+
+    let a = res.text().chain_err(|| "Unable to extract text")?;
+    Ok((a, etag))
 }
 
 #[cfg(test)]

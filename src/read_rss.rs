@@ -1,6 +1,7 @@
 use crate::models::Post;
 use crate::postgres::*;
 use crate::sec_entry::{FilingType, SECEntry};
+use crate::timing::*;
 use regex::Regex;
 use std::collections::HashSet;
 use xml::reader::{EventReader, XmlEvent};
@@ -9,12 +10,7 @@ use crate::errors::*;
 
 const NUM_ENTRY_ELEMENTS: usize = 4;
 
-pub fn read_rss(website: &str) -> Result<Vec<SECEntry>> {
-    let xml = reqwest::get(website)
-        .chain_err(|| "Unable to reach website")?
-        .text()
-        .chain_err(|| "Unable to get website text")?;
-    println!("Here");
+pub fn read_rss(xml: &str) -> Result<Vec<SECEntry>> {
     let parsed_xml = parse_xml(&xml);
     clean_xml(parsed_xml, HashSet::new()) //TODO replace
 }
@@ -219,11 +215,8 @@ mod rss_tests {
     }
 
     #[test]
-    fn read_rss_test() {
-        println!("{:#?}",read_rss("https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&CIK=&type=&company=&dateb=&owner=include&start=0&count=40&output=atom"));
-        assert!(true);
-        //assert!(read_rss("asdfajc").is_err());
-    }
+    #[ignore]
+    fn read_rss_test() {}
 
     #[test]
     fn clean_filing_test() {
