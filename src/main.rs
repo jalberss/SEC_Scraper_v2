@@ -13,8 +13,8 @@ fn main() {
     println!("Hello, world!");
     let mut etag: Option<&str> = None;
     while (true) {
-        let xml = get_rss(SEC_RSS_URL, etag);
-        let entries = read_rss(xml);
+        let (xml, etag) = get_rss(SEC_RSS_URL, etag).unwrap();
+        let entries = read_rss(&xml);
         if let Ok(entries) = entries {
             write_table(log_file, entries);
         }

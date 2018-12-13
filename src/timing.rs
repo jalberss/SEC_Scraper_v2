@@ -5,6 +5,8 @@
 use crate::errors::*;
 use reqwest::header::{ETAG, IF_NONE_MATCH};
 
+// Given a website url and an etag from the last visit, determine if we should
+// download the web page again.
 pub fn get_rss(website: &str, etag: Option<&str>) -> Result<(String, String)> {
     let client = reqwest::Client::new();
     let mut res = match etag {
