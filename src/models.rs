@@ -1,7 +1,9 @@
+#![allow(proc_macro_derive_resolution_fallback)]
+
 use super::schema::accession_numbers;
 use bigdecimal::BigDecimal;
 
-#[derive(Queryable)]
+#[derive(Queryable, PartialEq, Eq, Debug)]
 pub struct AccessionNumber {
     pub id: i32,
     pub accession_number: BigDecimal,
