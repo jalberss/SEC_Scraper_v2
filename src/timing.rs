@@ -3,7 +3,6 @@
 //! -> could be based on time
 //! -> could be based on when the rss feed updates
 use crate::errors::*;
-use reqwest::header::{ETAG, IF_MODIFIED_SINCE, IF_NONE_MATCH};
 
 // Given a website url and an etag from the last visit, determine if we should
 // download the web page again.

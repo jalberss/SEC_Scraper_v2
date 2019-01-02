@@ -1,7 +1,6 @@
 use crate::models::AccessionNumber;
 use crate::postgres::*;
 use crate::sec_entry::{FilingType, SECEntry};
-use crate::timing::*;
 use regex::Regex;
 use std::collections::HashSet;
 use xml::reader::{EventReader, XmlEvent};
@@ -103,9 +102,10 @@ fn has_accession_number(acc_number: usize) -> Option<Vec<AccessionNumber>> {
     get_number(&conn, acc_number)
 }
 
-fn write_accession_number(acc_number: usize) -> Result<(i32, String)> {
+fn write_accession_number(acc_number: usize) {
+    // -> Result<(i32, String)> {
     let conn = establish_connection("");
-    write_number(&conn, acc_number).chain_err(|| "Unable to write accession Number")
+    write_number(&conn, acc_number); //.chain_err(|| "Unable to write accession Number")
 }
 
 fn delete_accession_number(acc_number: usize) -> Result<usize> {
@@ -358,13 +358,17 @@ mod rss_tests {
 
     #[test]
     fn accession_number_test() {
-        let x = 1337;
+        //
         delete_accession_number(x);
         assert_eq!(has_accession_number(x), None);
         write_accession_number(x);
         assert_eq!(
-            has_accession_number(x).unwrap().pop().unwrap().acc_number,
-            String::from("1337")
+            has_accession_number(x)
+                .unwrap()
+                .pop()
+                .unwrap()
+                .accession_number,
+            1337
         );
         assert!(delete_accession_number(x).is_ok());
     }
