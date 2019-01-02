@@ -357,19 +357,20 @@ mod rss_tests {
     }
 
     #[test]
+    #[ignore]
     fn accession_number_test() {
         //
-        delete_accession_number(x);
-        assert_eq!(has_accession_number(x), None);
-        write_accession_number(x);
-        assert_eq!(
-            has_accession_number(x)
-                .unwrap()
-                .pop()
-                .unwrap()
-                .accession_number,
-            1337
-        );
-        assert!(delete_accession_number(x).is_ok());
+        // delete_accession_number(x);
+        // assert_eq!(has_accession_number(x), None);
+        // write_accession_number(x);
+        // assert_eq!(
+        //     has_accession_number(x)
+        //         .unwrap()
+        //         .pop()
+        //         .unwrap()
+        //         .accession_number,
+        //     1337
+        // );
+        // assert!(delete_accession_number(x).is_ok());
     }
 }

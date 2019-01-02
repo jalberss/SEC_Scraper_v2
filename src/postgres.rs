@@ -17,7 +17,10 @@ pub fn establish_connection(url: &str) -> PgConnection {
     }
 }
 
-pub fn write_number(conn: &PgConnection, acc_number: usize) -> Result<(), ()> {
+pub fn write_number(
+    conn: &PgConnection,
+    acc_number: usize,
+) -> Result<usize, diesel::result::Error> {
     use super::schema::accession_numbers;
 
     let new_post = NewAccessionNumber {
@@ -25,14 +28,19 @@ pub fn write_number(conn: &PgConnection, acc_number: usize) -> Result<(), ()> {
     };
 
     //TODO, make this not shit, why can't we add the
-    let what_is_this = diesel::insert_into(accession_numbers::table).values(&new_post);
+    diesel::insert_into(accession_numbers::table)
+        .values(&new_post)
+        .execute(conn)
 
-    Ok(())
     //unimplemented!();
 }
 
 pub fn delete_number(conn: &PgConnection, acc: usize) -> Result<usize, diesel::result::Error> {
-    unimplemented!()
+    //unimplemented!()
+    use super::schema::accession_numbers::dsl::*;
+
+    diesel::delete(accession_numbers.filter(accession_number.eq(BigDecimal::from(acc as u64))))
+        .execute(conn)
 }
 //     use super::schema::posts::dsl::*;
 
@@ -82,7 +90,11 @@ pub fn get_numbers(conn: &PgConnection) -> Vec<usize> {
 // }
 
 pub fn delete_all_posts(conn: &PgConnection) {
-    unimplemented!();
+    use super::schema::accession_numbers::dsl::*;
+
+    diesel::delete(accession_numbers)
+        .execute(conn)
+        .expect("Error deleting posts");
 }
 //     use super::schema::posts::dsl::*;
 
@@ -110,6 +122,7 @@ pub fn delete_all_posts(conn: &PgConnection) {
 #[cfg(test)]
 mod postgres_tests {
     use super::*;
+    use bigdecimal::BigDecimal;
 
     #[test]
     fn connection_test() {
@@ -122,20 +135,23 @@ mod postgres_tests {
         use crate::schema::accession_numbers::dsl::*;
         let conn = establish_connection("");
         delete_all_posts(&conn);
-        write_number(&conn, 6);
+        assert!(write_number(&conn, 6).is_ok());
         let results = accession_numbers
             .limit(1)
             .load::<AccessionNumber>(&conn)
             .expect("Error loading posts");
-        //assert!(results.iter().any(|a| a.acc_number == "6"));
-        assert!(false);
+        let b = results
+            .iter()
+            .any(|a| a.accession_number == BigDecimal::from(6));
+        delete_all_posts(&conn);
+        assert!(b);
     }
 
     #[test]
     fn delete_test() {
         use crate::schema::accession_numbers::dsl::*;
         let conn = establish_connection("");
-        write_number(&conn, 6);
+        assert!(write_number(&conn, 6).is_ok());
         delete_all_posts(&conn);
         let results = accession_numbers
             .limit(1)
@@ -149,9 +165,9 @@ mod postgres_tests {
         let conn = establish_connection("");
         delete_all_posts(&conn);
 
-        write_number(&conn, 1);
-        write_number(&conn, 2);
-        write_number(&conn, 3);
+        assert!(write_number(&conn, 1).is_ok());
+        assert!(write_number(&conn, 2).is_ok());
+        assert!(write_number(&conn, 3).is_ok());
         assert_eq!(vec![1, 2, 3], get_numbers(&conn));
     }
 }

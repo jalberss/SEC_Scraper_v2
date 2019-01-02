@@ -1,6 +1,6 @@
 use std::fmt::Write as FmtWrite;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 
 use crate::errors::*;
