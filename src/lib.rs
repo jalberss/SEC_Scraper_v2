@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate diesel;
+extern crate bigdecimal;
 extern crate dotenv;
 extern crate http;
 

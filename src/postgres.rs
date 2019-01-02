@@ -1,4 +1,5 @@
 use super::models::{AccessionNumber, NewAccessionNumber};
+use bigdecimal::*;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use dotenv::dotenv;
@@ -23,7 +24,7 @@ pub fn write_number(
     use super::schema::accession_numbers;
 
     let new_post = NewAccessionNumber {
-        accession_number: acc_number as u64,
+        accession_number: BigDecimal::from(acc_number as u64),
     };
 
     diesel::insert_into(accession_numbers::table)

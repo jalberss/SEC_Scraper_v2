@@ -98,7 +98,7 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 /// This function will check to see if an accesion number is not unique, and thus
 /// must be ignore. The Programmer regrets this function, and will replace it with
 /// database query
-fn has_accession_number(acc_number: usize) -> Option<Vec<Post>> {
+fn has_accession_number(acc_number: usize) -> Option<Vec<AccessionNumber>> {
     let conn = establish_connection("");
     get_number(&conn, acc_number)
 }
