@@ -28,11 +28,10 @@ pub fn write_number(
     };
 
     //TODO, make this not shit, why can't we add the
+
     diesel::insert_into(accession_numbers::table)
         .values(&new_post)
         .execute(conn)
-
-    //unimplemented!();
 }
 
 pub fn delete_number(conn: &PgConnection, acc: usize) -> Result<usize, diesel::result::Error> {
