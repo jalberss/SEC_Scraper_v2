@@ -1,4 +1,4 @@
-use crate::models::Post;
+use crate::models::AccessionNumber;
 use crate::postgres::*;
 use crate::sec_entry::{FilingType, SECEntry};
 use crate::timing::*;
@@ -201,7 +201,8 @@ mod rss_tests {
         assert_eq!(
             clean_title(Some(
                 &"S-1/A - Tipmefast, Inc. (0001726079) (Filer)".to_owned()
-            )).unwrap(),
+            ))
+            .unwrap(),
             ("S-1/A", "Tipmefast, Inc.", 1726079)
         );
     }
@@ -225,7 +226,8 @@ mod rss_tests {
             clean_filing(Some(
                 &"<b>Filed:</b> 2018-06-29 <b>AccNo:</b> 0001140361-18-030802 <b>Size:</b> 25 KB"
                     .to_string()
-            )).expect("")
+            ))
+            .expect("")
         );
     }
 
@@ -313,7 +315,8 @@ mod rss_tests {
             "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001387131-18-004493 <b>Size:</b> 108 KB\n",
             "2018-09-05T12:36:29-04:00",
             "urn:tag:sec.gov,2008:accession-number=0001387131-18-004493",
-        ].into_iter()
+        ]
+        .into_iter()
         .map(String::from)
         .collect::<Vec<String>>();
 
@@ -332,7 +335,8 @@ mod rss_tests {
             "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0000927730-18-000500 <b>Size:</b> 69 KB\n",
             "2018-09-05T13:06:11-04:00",
             "urn:tag:sec.gov,2008:accession-number=0000927730-18-000500",
-        ].into_iter()
+        ]
+        .into_iter()
         .map(String::from)
         .collect::<Vec<String>>();
 

@@ -1,15 +1,6 @@
 table! {
-    posts (id) {
+    accession_numbers (id) {
         id -> Int4,
-        acc_number -> Text,
+        accession_number -> Nullable<Numeric>,
     }
 }
-
-table! {
-    test_posts (id) {
-        id -> Int4,
-        acc_number -> Text,
-    }
-}
-
-allow_tables_to_appear_in_same_query!(posts, test_posts,);

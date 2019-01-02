@@ -12,11 +12,9 @@ fn main() {
     let log_file: &Path = Path::new("accession_numbers.txt");
     println!("Hello, world!");
     let etag: Option<&str> = None;
-    loop {
-        let (xml, _etag) = get_rss(SEC_RSS_URL, etag).unwrap();
-        let entries = read_rss(&xml);
-        if let Ok(entries) = entries {
-            write_table(log_file, entries);
-        }
+    let (xml, etag) = get_rss(SEC_RSS_URL, etag).unwrap();
+    let entries = read_rss(&xml);
+    if let Ok(entries) = entries {
+        write_table(log_file, entries);
     }
 }

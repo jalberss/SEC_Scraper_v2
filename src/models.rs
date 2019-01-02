@@ -1,20 +1,11 @@
-use super::schema::posts;
-use super::schema::test_posts;
-
-#[derive(Queryable, Debug, Clone, PartialEq, Eq)]
-pub struct Post {
+#[derive(Queryable)]
+pub struct AccessionNumber {
     pub id: i32,
-    pub acc_number: String,
-}
-
-#[derive(Insertable, PartialEq)]
-#[table_name = "posts"]
-pub struct NewPost<'a> {
-    pub acc_number: &'a str,
+    pub accession_number: u64,
 }
 
 #[derive(Insertable)]
-#[table_name = "test_posts"]
-pub struct NewTestPost<'a> {
-    pub acc_number: &'a str,
+#[table_name = "accession_numbers"]
+pub struct NewAccessionNumber {
+    pub accession_number: u64,
 }
