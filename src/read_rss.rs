@@ -195,6 +195,7 @@ pub fn ignore_filing<T: Iterator>(iter: &mut T) {
 #[cfg(test)]
 mod rss_tests {
     use super::*;
+    use bigdecimal::BigDecimal;
 
     #[test]
     fn clean_title_test_s1a() {
@@ -214,10 +215,6 @@ mod rss_tests {
             ("4", "Wang Janet", 1655081)
         );
     }
-
-    #[test]
-    #[ignore]
-    fn read_rss_test() {}
 
     #[test]
     fn clean_filing_test() {
@@ -357,21 +354,20 @@ mod rss_tests {
     }
 
     #[test]
-    #[ignore]
     fn accession_number_test() {
-        //
-
-        // delete_accession_number(x);
-        // assert_eq!(has_accession_number(x), None);
-        // write_accession_number(x);
-        // assert_eq!(
-        //     has_accession_number(x)
-        //         .unwrap()
-        //         .pop()
-        //         .unwrap()
-        //         .accession_number,
-        //     1337
-        // );
-        // assert!(delete_accession_number(x).is_ok());
+        let x = 1337;
+        let val = BigDecimal::from(1337);
+        delete_accession_number(x).expect("Better Not Fail");
+        assert_eq!(has_accession_number(x), None);
+        write_accession_number(x);
+        assert_eq!(
+            has_accession_number(x)
+                .unwrap()
+                .pop()
+                .unwrap()
+                .accession_number,
+            val
+        );
+        assert!(delete_accession_number(x).is_ok());
     }
 }

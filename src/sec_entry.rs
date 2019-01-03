@@ -46,7 +46,8 @@ impl SECEntry {
             self.date,
             self.timestamp,
             self.url,
-        );
+        )
+        .expect("Could not write string");
         s
     }
     pub fn get_url(cik: usize, acc: usize) -> String {

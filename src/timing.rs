@@ -6,21 +6,8 @@ use crate::errors::*;
 
 // Given a website url and an etag from the last visit, determine if we should
 // download the web page again.
-pub fn get_rss(website: &str, cached_etag: Option<&str>) -> Result<(String, String)> {
+pub fn get_rss(website: &str, _cached_etag: Option<&str>) -> Result<(String, String)> {
     let client = reqwest::Client::new();
-    //
-    // let mut res = match cached_etag {
-    //     Some(e) => client
-    //         .get(website)
-    //         .header(ETAG, e)
-    //         .send()
-    //         .chain_err(|| "No Updated Website")?,
-    //     None => client
-    //         .get(website)
-    //         .header(IF_MODIFIED_SINCE, "re")
-    //         .send()
-    //         .chain_err(|| "Website not reached")?,
-    // };
     let mut res = client
         .get(website)
         .send()

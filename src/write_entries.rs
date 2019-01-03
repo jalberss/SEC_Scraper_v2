@@ -12,7 +12,8 @@ pub fn write_table(path: &Path, entries: Vec<SECEntry>) -> Result<()> {
     write!(
         file,
         "Filing Type\tName\tCIK\tAccession Number\tDate\tTime\nUrl\n"
-    );
+    )
+    .expect("Could not write file");
     write_entries(file, entries)
 }
 
@@ -38,6 +39,7 @@ fn write_entries(mut file: File, entries: Vec<SECEntry>) -> Result<()> {
 mod write_entries_tests {
     use super::*;
     use crate::sec_entry::FilingType;
+    use std::io::Read;
 
     #[test]
     fn write_table_test_basic() {
