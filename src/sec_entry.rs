@@ -107,6 +107,8 @@ pub enum FilingType {
     SecF3D,
     SecPRER14A,
     SecPRE14C,
+    SecSCTOI,
+    Sec485BPOS,
 }
 
 impl FilingType {
@@ -142,6 +144,8 @@ impl FilingType {
             "F-3D" => Ok(FilingType::SecF3D),
             "PRER14A" => Ok(FilingType::SecPRER14A),
             "PRE 14C" => Ok(FilingType::SecPRE14C),
+            "SC TO-I" => Ok(FilingType::SecSCTOI),
+            "485BPOS" => Ok(FilingType::Sec485BPOS),
             _ => Err("Filing not recognized")?,
         }
     }
