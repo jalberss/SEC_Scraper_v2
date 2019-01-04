@@ -86,7 +86,7 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
                 date,
                 timestamp.to_owned(),
             );
-            if has_accession_number(acc_number).is_some() {
+            if !has_accession_number(acc_number).is_some() {
                 write_accession_number(acc_number);
                 entries.push(entry);
             }
@@ -256,6 +256,9 @@ mod rss_tests {
             String::from("2018-07-05T20:51:01-04:00"),
         );
 
+        // Previous Test will write number back to database
+        delete_accession_number(145438718000188);
+
         let test = vec![
             "4/A - Wilson Andrew (0001545193) (Reporting)",
             "\n <b>Filed:</b> 2018-07-05 <b>AccNo:</b> 0001454387-18-000188 <b>Size:</b> 5 KB\n",
@@ -287,7 +290,8 @@ mod rss_tests {
             vec![    "4/A - Wilson Andrew (0001545193) (Reporting)",
     "\n <b>Filed:</b> 2018-07-05 <b>AccNo:</b> 0001454387-18-000188 <b>Size:</b> 5 KB\n",
     "2018-07-05T20:51:01-04:00",
-                             "urn:tag:sec.gov,2008:accession-number=0001454387-18-000188"];
+                      "urn:tag:sec.gov,2008:accession-number=0001454387-18-000188"];
+        delete_accession_number(145438718000188);
         let vec = test.into_iter().map(str::to_owned).collect::<Vec<String>>();
         let entry = SECEntry::new(
             FilingType::Sec4A,
@@ -304,7 +308,7 @@ mod rss_tests {
     fn clean_xml_mega_test() {
         let test = vec![
             "4 - REDIKER DENNIS L (0001189878) (Reporting)",
-            "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001127602-18-026759 <b>Size:</b> 4 KB\n",
+            "\n <b>Filed:</b> 2018-09-05 <b>AccNo:</b> 0001127602-18-026760 <b>Size:</b> 4 KB\n",
             "2018-09-05T12:36:45-04:00",
             "urn:tag:sec.gov,2008:accession-number=0001127602-18-026759",
             "4 - MARTIN MARIETTA MATERIALS INC (0000916076) (Issuer)",
@@ -319,6 +323,11 @@ mod rss_tests {
         .into_iter()
         .map(String::from)
         .collect::<Vec<String>>();
+
+        // Previous Test will write number back to database
+        delete_accession_number(138713118004493);
+        delete_accession_number(112760218026759);
+        delete_accession_number(112760218026760);
 
         if let Ok(x) = clean_xml(test, HashSet::new()) {
             println!("{:#?}", &x);
@@ -339,6 +348,8 @@ mod rss_tests {
         .into_iter()
         .map(String::from)
         .collect::<Vec<String>>();
+
+        delete_accession_number(92773018000500);
 
         let entry = SECEntry::new(
             FilingType::Sec497,
