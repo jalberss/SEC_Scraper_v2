@@ -1,4 +1,3 @@
-use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
@@ -23,8 +22,6 @@ fn write_entries(mut file: File, entries: Vec<SECEntry>) -> Result<()> {
         .map(|entry| entry.string())
         .collect::<Vec<String>>();
 
-    println!("write entries: {:#?}", entries);
-
     entries.iter_mut().for_each(|entry| entry.push('\n'));
 
     entries
@@ -39,6 +36,7 @@ fn write_entries(mut file: File, entries: Vec<SECEntry>) -> Result<()> {
 mod write_entries_tests {
     use super::*;
     use crate::sec_entry::FilingType;
+    use std::fmt::Write as FmtWrite;
     use std::io::Read;
 
     #[test]

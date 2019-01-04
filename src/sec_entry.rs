@@ -66,7 +66,8 @@ impl SECEntry {
             s,
             "https://www.sec.gov/Archives/edgar/data/{}/{}/{}-index.htm",
             cik, acc, acc_hypen
-        );
+        )
+        .expect("Could not write url");
         s
     }
 }

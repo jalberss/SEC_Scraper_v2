@@ -4,3 +4,6 @@ This project will look up the most recent statements from the SEC, then it will 
 In the future, this will be more separated into a crate that deals exclusively with SEC data, and
 the persistent database
 
+To test, run
+	`cargo test  --manifest-path <path to project's Cargo.toml file> -- --test-threads=`
+

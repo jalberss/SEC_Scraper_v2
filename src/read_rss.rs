@@ -77,7 +77,6 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
                 .chain_err(|| "Unable to get timestamp element")?;
             element_it.next();
 
-            println!("cik: {:#?}", &cik);
             let entry = SECEntry::new(
                 filing_enum,
                 conformed_name.to_owned(),
