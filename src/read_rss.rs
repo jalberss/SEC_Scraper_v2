@@ -86,7 +86,7 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
                 date,
                 timestamp.to_owned(),
             );
-            if has_accession_number(acc_number).is_none() {
+            if has_accession_number(acc_number).is_some() {
                 write_accession_number(acc_number);
                 entries.push(entry);
             }
@@ -102,7 +102,7 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 /// It's replaced :)
 fn has_accession_number(acc_number: usize) -> Option<Vec<AccessionNumber>> {
     let conn = establish_connection("");
-    get_number(&conn, acc_number)
+    get_number(&conn, acc_number).and_then(|c| if c.len() == 0 { None } else { Some(c) })
 }
 
 fn write_accession_number(acc_number: usize) {

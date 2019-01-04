@@ -85,11 +85,50 @@ pub fn delete_all_posts(conn: &PgConnection) {
         .expect("Error deleting posts");
 }
 
+pub fn test_write_number(
+    conn: &PgConnection,
+    acc_number: usize,
+) -> Result<usize, diesel::result::Error> {
+    use super::schema::test_accession_numbers;
+    use crate::models::TestNewAccessionNumber;
+
+    let new_post = TestNewAccessionNumber {
+        accession_number: BigDecimal::from(acc_number as u64),
+    };
+
+    diesel::insert_into(test_accession_numbers::table)
+        .values(&new_post)
+        .execute(conn)
+}
+
+pub fn test_delete_all_posts(conn: &PgConnection) {
+    use super::schema::test_accession_numbers::dsl::*;
+
+    diesel::delete(test_accession_numbers)
+        .execute(conn)
+        .expect("Error deleting posts");
+}
+
+pub fn test_get_numbers(conn: &PgConnection) -> Option<Vec<BigDecimal>> {
+    use super::schema::test_accession_numbers::dsl::*;
+    use crate::models::TestAccessionNumber;
+
+    test_accession_numbers
+        .limit(5)
+        .load::<TestAccessionNumber>(conn)
+        .ok()
+        .map(|c| {
+            c.into_iter()
+                .map(|x| x.accession_number)
+                .collect::<Vec<BigDecimal>>()
+        })
+}
+
 #[cfg(test)]
 mod postgres_tests {
     use super::*;
+    use crate::models::TestAccessionNumber;
     use bigdecimal::BigDecimal;
-
     #[test]
     fn connection_test() {
         // Test will panic otherwise
@@ -98,30 +137,31 @@ mod postgres_tests {
 
     #[test]
     fn write_test() {
-        use crate::schema::accession_numbers::dsl::*;
+        use crate::schema::test_accession_numbers::dsl::*;
         let conn = establish_connection("");
-        delete_all_posts(&conn);
-        assert!(write_number(&conn, 6).is_ok());
-        let results = accession_numbers
+        test_delete_all_posts(&conn);
+        assert!(test_write_number(&conn, 6).is_ok());
+        let results = test_accession_numbers
             .limit(1)
-            .load::<AccessionNumber>(&conn)
+            .load::<TestAccessionNumber>(&conn)
             .expect("Error loading posts");
         let b = results
             .iter()
             .any(|a| a.accession_number == BigDecimal::from(6));
-        delete_all_posts(&conn);
+        test_delete_all_posts(&conn);
         assert!(b);
     }
 
     #[test]
     fn delete_test() {
-        use crate::schema::accession_numbers::dsl::*;
+        use crate::schema::test_accession_numbers::dsl::*;
+
         let conn = establish_connection("");
-        assert!(write_number(&conn, 6).is_ok());
-        delete_all_posts(&conn);
-        let results = accession_numbers
+        assert!(test_write_number(&conn, 6).is_ok());
+        test_delete_all_posts(&conn);
+        let results = test_accession_numbers
             .limit(1)
-            .load::<AccessionNumber>(&conn)
+            .load::<TestAccessionNumber>(&conn)
             .expect("Error Loading posts");
         assert!(results.iter().next().is_none());
     }
@@ -129,17 +169,17 @@ mod postgres_tests {
     #[test]
     fn get_numbers_test() {
         let conn = establish_connection("");
-        delete_all_posts(&conn);
+        test_delete_all_posts(&conn);
 
-        assert!(write_number(&conn, 1).is_ok());
-        assert!(write_number(&conn, 2).is_ok());
-        assert!(write_number(&conn, 3).is_ok());
+        assert!(test_write_number(&conn, 1).is_ok());
+        assert!(test_write_number(&conn, 2).is_ok());
+        assert!(test_write_number(&conn, 3).is_ok());
         let v = vec![1, 2, 3];
         let v = v
             .into_iter()
             .map(|x| BigDecimal::from(x))
             .collect::<Vec<BigDecimal>>();
-        assert_eq!(v, get_numbers(&conn).unwrap());
-        delete_all_posts(&conn);
+        assert_eq!(v, test_get_numbers(&conn).unwrap());
+        test_delete_all_posts(&conn);
     }
 }
