@@ -27,8 +27,6 @@ pub fn write_number(
         accession_number: BigDecimal::from(acc_number as u64),
     };
 
-    //TODO, make this not shit, why can't we add the
-
     diesel::insert_into(accession_numbers::table)
         .values(&new_post)
         .execute(conn)

@@ -86,9 +86,10 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
                 date,
                 timestamp.to_owned(),
             );
-
-            //write_accession_number(acc_number).expect("Unable to write accession number");
-            entries.push(entry);
+            if has_accession_number(acc_number).is_none() {
+                write_accession_number(acc_number);
+                entries.push(entry);
+            }
         }
     }
     Ok(entries)
@@ -97,6 +98,8 @@ pub fn clean_xml(xml: Vec<String>, ignore: HashSet<FilingType>) -> Result<Vec<SE
 /// This function will check to see if an accesion number is not unique, and thus
 /// must be ignore. The Programmer regrets this function, and will replace it with
 /// database query
+/// ^
+/// It's replaced :)
 fn has_accession_number(acc_number: usize) -> Option<Vec<AccessionNumber>> {
     let conn = establish_connection("");
     get_number(&conn, acc_number)
@@ -105,12 +108,12 @@ fn has_accession_number(acc_number: usize) -> Option<Vec<AccessionNumber>> {
 fn write_accession_number(acc_number: usize) {
     // -> Result<(i32, String)> {
     let conn = establish_connection("");
-    write_number(&conn, acc_number); //.chain_err(|| "Unable to write accession Number")
+    write_number(&conn, acc_number).chain_err(|| "Unable to write accession Number");
 }
 
 fn delete_accession_number(acc_number: usize) -> Result<usize> {
     let conn = establish_connection("");
-    delete_number(&conn, acc_number).chain_err(|| "Unable to write accession Number")
+    delete_number(&conn, acc_number).chain_err(|| "Unable to delete accession Number")
 }
 
 /// This function cleans the string received in the filing information from the xml

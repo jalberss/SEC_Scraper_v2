@@ -3,13 +3,15 @@
 //! -> could be based on time
 //! -> could be based on when the rss feed updates
 use crate::errors::*;
+use reqwest::header::ETAG;
 
-// Given a website url and an etag from the last visit, determine if we should
-// download the web page again.
+/// In a perfect World, this would only request when given a valid etag,
+/// but no one likes to give etags.
 pub fn get_rss(website: &str, _cached_etag: Option<&str>) -> Result<(String, String)> {
     let client = reqwest::Client::new();
     let mut res = client
         .get(website)
+        .header(ETAG, "Blah")
         .send()
         .chain_err(|| "Website not reached")?;
     println!("{:#?}", &res);
