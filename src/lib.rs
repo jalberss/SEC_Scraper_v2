@@ -7,6 +7,7 @@ extern crate http;
 #[macro_use]
 extern crate error_chain;
 
+pub mod cli;
 pub mod errors;
 pub mod models;
 pub mod postgres;

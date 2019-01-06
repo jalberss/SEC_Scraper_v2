@@ -1,6 +1,9 @@
 use crate::errors::*;
 use std::fmt::Write;
 
+pub static SUPPORTED_FILING_TYPES: &'static str = "S-1/A,
+5,4,4/A,3,6-K,FWP,425,8-K/A,8-K,497,D,424B2,13F-HR,SC13G,SC13G/A,SC13D/A,497,497K,POSAM,D/A,424B5,PRE14A,DFAN14A,144,F-10,F-3D,PRER14A,PRE14C,SCTO-I,485BPOS";
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct SECEntry {
     filing_type: FilingType,
@@ -114,7 +117,6 @@ pub enum FilingType {
 
 impl FilingType {
     pub fn which(filing_type: &str) -> Result<FilingType> {
-        println!("{}", filing_type);
         match filing_type {
             "S-1/A" => Ok(FilingType::SecS1),
             "5" => Ok(FilingType::Sec5),

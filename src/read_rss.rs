@@ -9,9 +9,9 @@ use crate::errors::*;
 
 const NUM_ENTRY_ELEMENTS: usize = 4;
 
-pub fn read_rss(xml: &str) -> Result<Vec<SECEntry>> {
+pub fn read_rss(xml: &str, ignore: HashSet<FilingType>) -> Result<Vec<SECEntry>> {
     let parsed_xml = parse_xml(&xml);
-    clean_xml(parsed_xml, HashSet::new()) //TODO replace
+    clean_xml(parsed_xml, ignore) //TODO replace
 }
 
 pub fn parse_xml(xml: &str) -> Vec<String> {
